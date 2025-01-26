@@ -33,9 +33,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Access the API key
-api_key = os.getenv('OPENAI_API_KEY')
+openai.api_key = os.getenv('OPENAI_API_KEY')
 
-openai.api_key = api_key
+if not openai.api_key:
+    raise ValueError("OpenAI API key is missing")
 
 # Use the API key in your application
 print(f"My OpenAI API Key is: {api_key}")

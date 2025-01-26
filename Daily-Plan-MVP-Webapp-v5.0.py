@@ -32,14 +32,20 @@ from dotenv import load_dotenv
 # Load variables from .env file
 load_dotenv()
 
-# Access the API key
-openai.api_key = os.getenv('OPENAI_API_KEY')
+# Fetch the API key from Streamlit secrets
+openai.api_key = st.secrets["OPENAI_API_KEY"]
 
 if not openai.api_key:
-    raise ValueError("OpenAI API key is missing")
+    raise ValueError("OpenAI API key is missing. Check Streamlit Secrets.")
+
+# Access the API key
+#openai.api_key = os.getenv('OPENAI_API_KEY')
+
+#if not openai.api_key:
+    #raise ValueError("OpenAI API key is missing")
 
 # Use the API key in your application
-print(f"My OpenAI API Key is: {api_key}")
+#print(f"My OpenAI API Key is: {api_key}")
 
 
 # In[ ]:

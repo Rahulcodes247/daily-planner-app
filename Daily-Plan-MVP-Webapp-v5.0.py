@@ -8,21 +8,11 @@ import openai
 import streamlit as st
 import json
 import datetime
-from datetime import time
+from datetime import datetime, time
 import pandas as pd
 
 
 # In[ ]:
-
-
-#Anaconda Command Prompt codes
-#streamlit run "Daily Plan MVP Webapp v4.3.py"
-#jupyter nbconvert --to script "Daily Plan MVP Webapp v4.3.ipynb"
-#cd C:\Users\rahul.kumar\Jupyter Notebook Codes\daily-planner-app
-#pip install pandas xlsxwriter
-#pip install openai==0.28.0
-
-
 # In[ ]:
 
 
@@ -79,6 +69,28 @@ def generate_daily_plan(user_inputs):
 
 # In[ ]:
 
+def save_feedback_locally(feedback):
+    try:
+        # Load existing feedback data if it exists
+        file_path = "feedback_data.csv"
+        try:
+            feedback_data = pd.read_csv(file_path)
+        except FileNotFoundError:
+            # If the file doesn't exist, create an empty DataFrame
+            feedback_data = pd.DataFrame(columns=["Timestamp", "Feedback"])
+
+        # Create a new row
+        new_entry = {"Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "Feedback": feedback}
+
+        # Add the new row to the DataFrame
+        feedback_data = pd.concat([feedback_data, pd.DataFrame([new_entry])], ignore_index=True)
+
+        # Save the updated DataFrame back to the file
+        feedback_data.to_csv(file_path, index=False)
+        print("Feedback saved locally!")
+    except Exception as e:
+        print(f"Error saving feedback: {e}")
+
 
 def main():
     st.title("Personalized Daily Planner Assistant")
@@ -123,11 +135,11 @@ def main():
     # Step 4: Ask preferred times for meals
     st.subheader("Preferred Meal Times")
     if 'breakfast_time' not in st.session_state:
-        st.session_state.breakfast_time = datetime.time(8, 0)
+        st.session_state.breakfast_time = time(8, 0)
     if 'lunch_time' not in st.session_state:
-        st.session_state.lunch_time = datetime.time(13, 0)
+        st.session_state.lunch_time = time(13, 0)
     if 'dinner_time' not in st.session_state:
-        st.session_state.dinner_time = datetime.time(20, 0)
+        st.session_state.dinner_time = time(20, 0)
 
     breakfast_time = st.time_input("Preferred time for breakfast?", value=st.session_state.breakfast_time, key="breakfast_time")
     lunch_time = st.time_input("Preferred time for lunch?", value=st.session_state.lunch_time, key="lunch_time")
@@ -192,7 +204,19 @@ def main():
             file_name="Daily_Plan.json",
             mime="application/json",
             key="download_json_button"
-        )      
+        ) 
+        
+    # Streamlit app layout
+    st.title("Daily Planner App")
+    st.write("Welcome to the Daily Planner App! Please provide your valuable feedback.")
+
+    # Feedback form
+    feedback = st.text_area("Enter your feedback:")
+    if st.button("Submit Feedback"):
+        if feedback.strip():
+            # Save feedback locally
+            save_feedback_locally(feedback)
+            st.success("Thank you for your feedback!")
 
 if __name__ == "__main__":
     main()

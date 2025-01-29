@@ -13,7 +13,6 @@ import pandas as pd
 import os
 os.system("pip install gspread google-auth")
 import gspread
-from oauth2client.service_account import ServiceAccountCredentials
 from google.oauth2.service_account import Credentials
 
 
@@ -51,7 +50,7 @@ def connect_to_gsheet():
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
     
     # Authenticate with the service account JSON key
-    credentials = ServiceAccountCredentials.from_json_keyfile_name("service_account.json", scope)
+    credentials = Credentials.from_service_account_file("service_account.json", scopes=scope)
     client = gspread.authorize(credentials)
     
     # Open the Google Sheet (replace with your sheet name)

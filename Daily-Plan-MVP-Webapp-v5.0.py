@@ -233,14 +233,7 @@ def main():
     st.title("Daily Planner App")
     st.write("Welcome to the Daily Planner App! Please provide your valuable feedback.")
 
-    # Feedback form
-    feedback = st.text_area("Enter your feedback:")
-    if st.button("Submit Feedback"):
-        if feedback.strip():
-            # Save feedback locally
-            save_feedback_locally(feedback)
-            st.success("Thank you for your feedback!")
-
+   
     # Collect feedback
     feedback = st.text_area("Your Feedback:", placeholder="Let us know what you think!")
     

@@ -40,6 +40,29 @@ if not openai.api_key:
 
 # In[ ]:
 
+# Function to connect to Google Sheets
+def connect_to_gsheet():
+    # Define the scope
+    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+    
+    # Authenticate with the service account JSON key
+    credentials = ServiceAccountCredentials.from_json_keyfile_name("service_account.json", scope)
+    client = gspread.authorize(credentials)
+    
+    # Open the Google Sheet (replace with your sheet name)
+    sheet = client.open("Feedback Sheet").sheet1
+    return sheet
+
+# Function to save feedback to Google Sheets
+def save_feedback_to_gsheet(feedback):
+    try:
+        sheet = connect_to_gsheet()
+        # Add a new row with the feedback
+        sheet.append_row([st.session_state.timestamp, feedback])
+        st.success("Feedback saved to Google Sheets!")
+    except Exception as e:
+        st.error(f"An error occurred: {e}")
+
 
 def generate_daily_plan(user_inputs):
     """
@@ -217,6 +240,16 @@ def main():
             # Save feedback locally
             save_feedback_locally(feedback)
             st.success("Thank you for your feedback!")
+
+    # Collect feedback
+    feedback = st.text_area("Your Feedback:", placeholder="Let us know what you think!")
+    
+    if st.button("Submit Feedback"):
+        if feedback.strip():
+            st.session_state.timestamp = st.time_input("Timestamp")  # Add timestamp to feedback
+            save_feedback_to_gsheet(feedback)
+        else:
+            st.warning("Feedback cannot be empty!")
 
 if __name__ == "__main__":
     main()

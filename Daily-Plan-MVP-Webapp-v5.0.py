@@ -10,6 +10,8 @@ import json
 import datetime
 from datetime import datetime, time
 import pandas as pd
+import os
+os.system("pip install gspread google-auth")
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from google.oauth2.service_account import Credentials

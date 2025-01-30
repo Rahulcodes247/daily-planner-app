@@ -16,9 +16,6 @@ if not openai.api_key:
 # Read GCP Credentials from Streamlit secrets or environment variable
 gcp_credentials = os.getenv("GCP_CREDENTIALS")  # For GitHub Actions
 
-if not gcp_credentials:
-    gcp_credentials = st.secrets["GCP_CREDENTIALS"]  # For Streamlit Cloud
-
 # Debugging: Print credentials (Caution: Do not expose in production!)
 print("GCP_CREDENTIALS:", gcp_credentials[:100])  # Print first 100 chars
 

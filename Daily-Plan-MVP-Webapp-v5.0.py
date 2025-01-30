@@ -16,6 +16,12 @@ if not openai.api_key:
 # Read GCP Credentials from Streamlit secrets or environment variable
 gcp_credentials = os.getenv("GCP_CREDENTIALS")  # For GitHub Actions
 
+# Debugging: Print if secret exists
+if gcp_credentials:
+    print("✅ GCP_CREDENTIALS found, length:", len(gcp_credentials))
+else:
+    print("❌ GCP_CREDENTIALS is empty or not set!")
+
 # Debugging: Print credentials (Caution: Do not expose in production!)
 print("GCP_CREDENTIALS:", gcp_credentials[:100])  # Print first 100 chars
 

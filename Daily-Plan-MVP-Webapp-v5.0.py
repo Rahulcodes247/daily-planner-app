@@ -42,6 +42,28 @@ if not openai.api_key:
 #print(f"My OpenAI API Key is: {api_key}")
 
 
+# Retrieve the secret from environment variable
+service_account_info = os.getenv("GCP_CREDENTIALS")
+
+if service_account_info:
+    try:
+        # Convert string back to dictionary
+        service_account_json = json.loads(service_account_info)
+
+        # Authenticate with gspread
+        credentials = Credentials.from_service_account_info(service_account_json)
+        client = gspread.authorize(credentials)
+
+        # Open the Google Sheet
+        spreadsheet = client.open("Your Google Sheet Name")
+        sheet = spreadsheet.sheet1  # Access first sheet
+
+        print(sheet.get_all_records())  # Fetch data for testing
+    except Exception as e:
+        print("Error in authentication:", e)
+else:
+    print("Error: GCP_SERVICE_ACCOUNT_KEY not found in environment variables."
+
 # In[ ]:
 
 # Function to connect to Google Sheets

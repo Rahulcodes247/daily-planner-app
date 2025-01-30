@@ -1,6 +1,7 @@
 import openai
 import streamlit as st
 import json
+import os
 import datetime
 import pandas as pd
 import gspread

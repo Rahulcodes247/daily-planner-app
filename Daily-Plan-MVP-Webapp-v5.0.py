@@ -12,8 +12,8 @@ openai.api_key = st.secrets["OPENAI_API_KEY"]
 if not openai.api_key:
     raise ValueError("OpenAI API key is missing. Check Streamlit Secrets.")
 
-# Retrieve the Google Sheets service account credentials from Streamlit secrets
-service_account_info = json.loads(st.secrets["GCP_CREDENTIALS"])
+# Read GCP Credentials from Environment Variable
+service_account_info = json.loads(os.getenv("GCP_CREDENTIALS", "{}"))
 
 # Authenticate with Google Sheets
 credentials = Credentials.from_service_account_info(service_account_info)

@@ -13,6 +13,15 @@ openai.api_key = st.secrets["OPENAI_API_KEY"]
 if not openai.api_key:
     raise ValueError("OpenAI API key is missing. Check Streamlit Secrets.")
 
+# Read GCP Credentials from Streamlit secrets or environment variable
+gcp_credentials = os.getenv("GCP_CREDENTIALS")  # For GitHub Actions
+
+if not gcp_credentials:
+    gcp_credentials = st.secrets["GCP_CREDENTIALS"]  # For Streamlit Cloud
+
+# Debugging: Print credentials (Caution: Do not expose in production!)
+print("GCP_CREDENTIALS:", gcp_credentials[:100])  # Print first 100 chars
+
 # Read GCP Credentials from Environment Variable
 service_account_info = json.loads(os.getenv("GCP_CREDENTIALS", "{}"))
 

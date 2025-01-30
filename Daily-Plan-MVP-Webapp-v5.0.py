@@ -62,7 +62,7 @@ if service_account_info:
     except Exception as e:
         print("Error in authentication:", e)
 else:
-    print("Error: GCP_SERVICE_ACCOUNT_KEY not found in environment variables."
+    print("Error: GCP_SERVICE_ACCOUNT_KEY not found in environment variables.")
 
 # In[ ]:
 

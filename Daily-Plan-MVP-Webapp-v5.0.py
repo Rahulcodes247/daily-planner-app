@@ -6,33 +6,26 @@ import datetime
 import pandas as pd
 import gspread
 from google.oauth2.service_account import Credentials
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
 
-# Hardcode GCP credentials (usually a JSON file, but here it is a dictionary for simplicity)
-gcp_credentials = {
-  "type": "service_account",
-  "project_id": "daily-planner-app-449118",
-  "private_key_id": "20017fe39375b6d02c1222a6244af220492c27c5",
-  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCx01zg5R+uN0xG\nYX9w/OtNrzkg0EZpTdbw5XH/fX9UVQHG/w4y1JdnGO9WwUc1tiqM1I928n8KHVgB\neesQhpR4qYBYXpQK6JwkoDOSS4gAb1dNWaZnoGUZU4l8ycu/bzpGMNhu5MOvjUkN\nWK4usyfnqpU5WfVkR/yoRHXcKOr26iTPpbmWJFekJQaxRmMJKu3Hto80gJChGz5t\n/OXNLo8RsMoBJi41WadA9olGSmzL3ULDKrl68KGEVH3aUw/AjTrDBL1Ux4UvdBPV\nqcGHLTC9oxin8C3/r3tkwgnWAmRVSgez5RbnOMekpcd+AfNB1wa/YrbguQo7Mj21\nIBPX+d0vAgMBAAECggEAFJGSqi7GedPKnk9zusF+hCdS79E3e8G1rXqUs400F7CX\neomQ/l8pvhKbyIilsHhINq71gzgsaqKXReBwyKIQdV6BynbyH8rlGLVxEahr7ET0\nr61BerYKS6Imgoki6Js4fdrzhewvGFS60PDjgOJXKMxJ427c3AMZnesBSPxwpSuh\nVH/yQcQE/5o2mRIPT5EcT1Mah3x4bIrFfDeDwoXsFS2tzn2Fv1zcCkqcDnkEhVdy\nIyF2tgH9RAc4qW3s+H+uOpFnrMJ5ufheBsnGoza3Y+72hPPTIbTW4Ffw47jVTqSW\nzQDg8Jy9rPpij7q6zrCqyFcF+chnGv2hqMrHWTCLYQKBgQD0KMXdN8rTrqPbdtHi\nFuG4N7WYW6cUn2aFdnzeJKLmJhkdVu4bb3NQ1GOQDjv+MhjbawDu0SXUjtn0eMU7\nh1FTSE7tASW0JOsb2uG+9Eyvu1IP2T0XsnrnW3HKDRLmsxQO8DU7d9TaXsH1DjoT\nHvcyFjTcFrPOje45skIyOEd1zwKBgQC6cw+FC/12zRcwa2I819zpBeaYGZJIFWNE\nK7FnWModj7oWZVC8I0XG/oKD7hQsXSZOXkW5umaTjD/E2LHVBQ2LyHaNgWdGdtoW\nHWcxBqGrdDa2LEisG6odbUxbjlGTxW/1TL1rB3RUazATRdgrMdXvz/i0niOqGCAl\nXMz1GAJaoQKBgC+7ONNCcPhpD8d7txRH/OCSo4GhiUxSzSwSOd8DsoTjtc0yjWH3\nq8eFfeFPpxLOoGVkyc3mPUsMkjdk1MoKbi+l1ygmLUTGYuATLkayY7uHF0fZ5EOZ\ntMU970TcwXEwWR+CfiWeC5KVK73Ihjnut8ym4raUCZq7zHKjEqXWssGpAoGBAIm7\nh8J0KghB1xiIqyhhGir1lfPUKBCh5BOu5z1+BMizrPbwXySsNdabmpSVIkfng+2u\njHl4LmBe4Zirryq6sdgJ/THpXv5ZvB9MFzfLO1Cp5+TJb+HcCd31KMwVpUOxPVSL\nHP5col3eVMRX+yllhjHCg2oBzDzR16ViGXIRC2QhAoGBAM+Np7isy5g//V1lSwZY\nBN9CDcUXFmTO7KTukUVbUy37D0VA9Sh2CE/dkNDv/B5io8qe+g/XWm1n+rQ9LbgY\nS2/IO7LTbfZr9fHz0i4nencu72/YwsfnuqTvWN4aE/8YzUGdzkbDWWVsEcj7M6Pd\nq7zCZiZHsvLcl0veAfop5bN5\n-----END PRIVATE KEY-----\n",
-  "client_email": "daily-planner-app@daily-planner-app-449118.iam.gserviceaccount.com",
-  "client_id": "113298100176630980379",
-  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-  "token_uri": "https://oauth2.googleapis.com/token",
-  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/daily-planner-app%40daily-planner-app-449118.iam.gserviceaccount.com",
-  "universe_domain": "googleapis.com"
-}
+# Load secrets from Streamlit Cloud
+if "credentials" in st.secrets:
+    secrets_data = json.loads(st.secrets["credentials"])  # Parse JSON
+    OPENAI_API_KEY = secrets_data["OPENAI_API_KEY"]       # Extract OpenAI Key
+    GCP_CREDENTIALS = secrets_data["GCP_CREDENTIALS"]     # Extract GCP Credentials
 
+    # Authenticate with Google Sheets API
+    creds = service_account.Credentials.from_service_account_info(
+        GCP_CREDENTIALS, scopes=["https://www.googleapis.com/auth/spreadsheets"]
+    )
+    service = build("sheets", "v4", credentials=creds)
 
-# Create credentials from the hardcoded JSON
-credentials = service_account.Credentials.from_service_account_info(gcp_credentials)
+    st.write("✅ Google Sheets API Connected Successfully!")
 
-# Now you can use the credentials for GCP services like Google Sheets, Google Cloud Storage, etc.
+else:
+    st.error("❌ Secrets not found in Streamlit Cloud!")
 
-# Fetch the API key from Streamlit secrets
-openai.api_key = st.secrets["OPENAI_API_KEY"]
-
-if not openai.api_key:
-    raise ValueError("OpenAI API key is missing. Check Streamlit Secrets.")
 
 
 # Authenticate with Google Sheets

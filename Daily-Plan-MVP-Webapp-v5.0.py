@@ -9,32 +9,26 @@ from google.oauth2.service_account import Credentials
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
-# Load secrets
+# Load GCP credentials from Streamlit secrets
 GCP_CREDENTIALS = st.secrets["gcp"]["GCP_CREDENTIALS"]
 
-# Convert string to dictionary
+# Convert string to dictionary for Google Cloud credentials
 GCP_CREDENTIALS_dict = json.loads(GCP_CREDENTIALS)
 
-# Authenticate
+# Authenticate with Google Cloud
 credentials = service_account.Credentials.from_service_account_info(GCP_CREDENTIALS_dict)
 client = gspread.authorize(credentials)
 
 st.write("✅ Successfully authenticated with Google Sheets API!")
 
-# Load OpenAI API Key from secrets
+# Load OpenAI API Key from Streamlit secrets
 OPENAI_API_KEY = st.secrets["openai"]["OPENAI_API_KEY"]
 
-# Convert string to dictionary
-OPENAI_API_KEY_dict = json.loads(OPENAI_API_KEY)
-
 # Set the OpenAI API key for use in your application
-OPENAI.API_KEY = OPENAI_API_KEY
-
-# Authenticate with Google Sheets
-client = gspread.authorize(credentials)
+openai.api_key = OPENAI_API_KEY # Assign directly as a string
 
 # Open the Google Sheet
-spreadsheet = client.open("Your Google Sheet Name")
+spreadsheet = client.open("daily-planner-app-mvp-feedback")
 sheet = spreadsheet.sheet1  # Access first sheet
 
 # Function to save feedback to Google Sheets

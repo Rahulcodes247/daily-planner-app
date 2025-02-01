@@ -9,17 +9,21 @@ from google.oauth2.service_account import Credentials
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
+# Define the required scopes
+SCOPES = [
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/drive"
+]
+
 # Load GCP credentials from Streamlit secrets
 GCP_CREDENTIALS = st.secrets["gcp"]["GCP_CREDENTIALS"]
 
 # Convert string to dictionary for Google Cloud credentials
 GCP_CREDENTIALS_dict = json.loads(GCP_CREDENTIALS)
 
-# Define the required scopes
-SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 
 # Authenticate with Google Cloud
-credentials = service_account.Credentials.from_service_account_info(GCP_CREDENTIALS_dict)
+credentials = service_account.Credentials.from_service_account_info(GCP_CREDENTIALS_dict, scopes=SCOPES)
 client = gspread.authorize(credentials)
 
 st.write("✅ Successfully authenticated with Google Sheets API!")

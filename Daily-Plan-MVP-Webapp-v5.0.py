@@ -15,6 +15,9 @@ GCP_CREDENTIALS = st.secrets["gcp"]["GCP_CREDENTIALS"]
 # Convert string to dictionary for Google Cloud credentials
 GCP_CREDENTIALS_dict = json.loads(GCP_CREDENTIALS)
 
+# Define the required scopes
+SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
+
 # Authenticate with Google Cloud
 credentials = service_account.Credentials.from_service_account_info(GCP_CREDENTIALS_dict)
 client = gspread.authorize(credentials)

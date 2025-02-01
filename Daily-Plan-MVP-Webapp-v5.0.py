@@ -24,9 +24,11 @@ st.write("✅ Successfully authenticated with Google Sheets API!")
 # Load OpenAI API Key from secrets
 OPENAI_API_KEY = st.secrets["openai"]["OPENAI_API_KEY"]
 
+# Convert string to dictionary
+OPENAI_API_KEY_dict = json.loads(OPENAI_API_KEY)
+
 # Set the OpenAI API key for use in your application
 OPENAI.API_KEY = OPENAI_API_KEY
-
 
 # Authenticate with Google Sheets
 client = gspread.authorize(credentials)

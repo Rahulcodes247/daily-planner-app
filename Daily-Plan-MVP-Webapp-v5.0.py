@@ -9,23 +9,23 @@ from google.oauth2.service_account import Credentials
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
-# Load secrets from Streamlit Cloud
-if "credentials" in st.secrets:
-    secrets_data = json.loads(st.secrets["credentials"])  # Parse JSON
-    OPENAI_API_KEY = secrets_data["OPENAI_API_KEY"]       # Extract OpenAI Key
-    GCP_CREDENTIALS = secrets_data["GCP_CREDENTIALS"]     # Extract GCP Credentials
+# Load secrets
+GCP_CREDENTIALS = st.secrets["gcp"]["GCP_CREDENTIALS"]
 
-    # Authenticate with Google Sheets API
-    creds = service_account.Credentials.from_service_account_info(
-        GCP_CREDENTIALS, scopes=["https://www.googleapis.com/auth/spreadsheets"]
-    )
-    service = build("sheets", "v4", credentials=creds)
+# Convert string to dictionary
+GCP_CREDENTIALS_dict = json.loads(GCP_CREDENTIALS)
 
-    st.write("✅ Google Sheets API Connected Successfully!")
+# Authenticate
+credentials = service_account.Credentials.from_service_account_info(GCP_CREDENTIALS_dict)
+client = gspread.authorize(credentials)
 
-else:
-    st.error("❌ Secrets not found in Streamlit Cloud!")
+st.write("✅ Successfully authenticated with Google Sheets API!")
 
+# Load OpenAI API Key from secrets
+OPENAI_API_KEY = st.secrets["openai"]["OPENAI_API_KEY"]
+
+# Set the OpenAI API key for use in your application
+OPENAI.API_KEY = OPENAI_API_KEY
 
 
 # Authenticate with Google Sheets

@@ -60,6 +60,29 @@ def save_feedback_to_gsheet(feedback):
     except Exception as e:
         st.error(f"An error occurred: {e}")
 
+# Open Sheet 3 for logging usage
+daily_logs_sheet = spreadsheet.worksheet("Sheet3")  # Assuming Sheet3 is present
+
+# Function to log each use of the app
+def log_app_inputs(user_inputs):
+    try:
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        log_data = [
+            timestamp,
+            user_inputs["wake_up_time"],
+            user_inputs["sleep_time"],
+            ", ".join(user_inputs["activities"]),
+            json.dumps(user_inputs["activity_hours"]),  # Store activity hours as JSON string
+            user_inputs["breakfast_time"],
+            user_inputs["lunch_time"],
+            user_inputs["dinner_time"],
+            user_inputs["preferences"]
+        ]
+        daily_logs_sheet.append_row(log_data)
+        st.success("Inputs logged successfully in Sheet 3!")
+    except Exception as e:
+        st.error(f"An error occurred while logging usage: {e}")
+
 # Function to generate daily plan
 def generate_daily_plan(user_inputs):
     prompt = f"""
@@ -167,6 +190,9 @@ def main():
 
         # Log the usage in Sheet 2
         log_app_usage()
+
+        # Log the usage in Sheet 3
+        log_app_inputs(user_inputs)
     
     # Display the daily plan if it exists
     if "daily_plan" in st.session_state and st.session_state.daily_plan:

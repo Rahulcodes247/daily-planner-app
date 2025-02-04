@@ -146,7 +146,7 @@ def main():
     activities = [
     "Commute/Travel", 
     "Work/Office Tasks", 
-    "Meals", 
+    "Snacks", 
     "Fitness/Exercise", 
     "Personal Care", 
     "Family Time", 
@@ -165,12 +165,12 @@ def main():
     activity_hours = {}
     for activity in selected_activities:
         if f"hours_{activity}" not in st.session_state:
-            st.session_state[f"hours_{activity}"] = 1  # Default hour is 1
+            st.session_state[f"hours_{activity}"] = 1  # Default hour is 1.0
         
         activity_hours[activity] = st.number_input(f"How many hours for {activity}?", 
-                                                  min_value=0, max_value=24, 
+                                                  min_value=0.0, max_value=24.0, 
                                                   value=st.session_state[f"hours_{activity}"], 
-                                                  step=1, key=f"hours_{activity}")
+                                                  step=0.1, key=f"hours_{activity}")
  
 
     # Step 4: Ask preferred times for meals

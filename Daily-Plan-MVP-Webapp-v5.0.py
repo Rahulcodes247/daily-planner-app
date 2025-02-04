@@ -45,6 +45,7 @@ def log_app_usage():
     try:
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         daily_logs_sheet.append_row([timestamp])
+    except Exception as e:
         
 # Function to save feedback to Google Sheets
 def save_feedback_to_gsheet(feedback):
@@ -74,6 +75,7 @@ def log_app_inputs(user_inputs):
             user_inputs["preferences"]
         ]
         daily_logs_inputs.append_row(log_data)
+    except Exception as e:
         
 # Function to generate daily plan
 def generate_daily_plan(user_inputs):

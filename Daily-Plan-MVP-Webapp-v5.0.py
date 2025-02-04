@@ -90,6 +90,7 @@ def generate_daily_plan(user_inputs):
     - **Selected Activities:** {', '.join(user_inputs['activities'])}
     - **Allocated Time for Activities (in hours):** {user_inputs['activity_hours']}
     - **Preferred Meal Times:** Breakfast at {user_inputs['breakfast_time']}, Lunch at {user_inputs['lunch_time']}, Dinner at {user_inputs['dinner_time']}
+    - **Preferred Office Times:** Office Start at {user_inputs['office_start_time']}, Office End at {user_inputs['office_end_time']}
     - **User Constraints/Preferences:** {user_inputs.get('preferences', 'None')}
 
     **Task:**
@@ -145,15 +146,15 @@ def main():
     st.subheader("Select the key activities you want to include in your daily plan:")
     activities = [
     "Commute/Travel", 
-    "Work/Office Tasks", 
-    "Snacks", 
+    "Work/Office Tasks",
+    "Personal Development", 
     "Fitness/Exercise", 
     "Personal Care", 
-    "Family Time", 
-    "Personal Development", 
+    "Family Time",  
     "Relaxation/Leisure", 
     "Social/Networking",
-    "Passion Project"
+    "Passion Project",
+    "Snacks"
     ]
     
     if 'selected_activities' not in st.session_state:
@@ -182,16 +183,25 @@ def main():
     if 'dinner_time' not in st.session_state:
         st.session_state.dinner_time = datetime.time(20, 0)
 
+    # Step X: Ask preferred times for Office
+    st.subheader("Preferred Office Start and End Time")
+    if 'office_start_time' not in st.session_state:
+        st.session_state.office_start_time = datetime.time(10, 0)
+    if 'office_end_time' not in st.session_state:
+        st.session_state.office_end_time = datetime.time(18, 0)
+
+    
     breakfast_time = st.time_input("Preferred time for breakfast?", value=st.session_state.breakfast_time, key="breakfast_time")
     lunch_time = st.time_input("Preferred time for lunch?", value=st.session_state.lunch_time, key="lunch_time")
     dinner_time = st.time_input("Preferred time for dinner?", value=st.session_state.dinner_time, key="dinner_time")
-
+    office_start_time = st.time_input("Preferred time to start Office work?", value=st.session_state.office_start_time, key="office_start_time")
+    office_end_time = st.time_input("Preferred time to end Office work?", value=st.session_state.office_end_time, key="office_end_time")
 
    # Step 5: Ask for any constraints or preferences
     if 'preferences' not in st.session_state:
         st.session_state.preferences = ""
         
-    preferences = st.text_area("Any constraints or preferences? (e.g., workout in the morning, family time before dinner, etc.)", 
+    preferences = st.text_area("Any constraints or preferences? (e.g., passion project in the morning, family time before dinner, etc.)", 
                               value=st.session_state.preferences, key="preferences")
     
    
@@ -205,6 +215,8 @@ def main():
             "breakfast_time": str(breakfast_time),
             "lunch_time": str(lunch_time),
             "dinner_time": str(dinner_time),
+            "office_start_time": str(office_start_time),
+            "office_end_time": str(office_end_time),
             "preferences": preferences
         }
         

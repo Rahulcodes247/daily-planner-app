@@ -61,7 +61,7 @@ def save_feedback_to_gsheet(feedback):
         st.error(f"An error occurred: {e}")
 
 # Open Sheet 3 for logging usage
-daily_logs_sheet = spreadsheet.worksheet("Sheet3")  # Assuming Sheet3 is present
+daily_logs_inputs = spreadsheet.worksheet("Sheet3")  # Assuming Sheet3 is present
 
 # Function to log each use of the app
 def log_app_inputs(user_inputs):
@@ -78,7 +78,7 @@ def log_app_inputs(user_inputs):
             user_inputs["dinner_time"],
             user_inputs["preferences"]
         ]
-        daily_logs_sheet.append_row(log_data)
+        daily_logs_inputs.append_row(log_data)
         st.success("Inputs logged successfully in Sheet 3!")
     except Exception as e:
         st.error(f"An error occurred while logging usage: {e}")

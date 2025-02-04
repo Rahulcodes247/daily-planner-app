@@ -78,15 +78,39 @@ def log_app_inputs(user_inputs):
 # Function to generate daily plan
 def generate_daily_plan(user_inputs):
     prompt = f"""
-    The user has provided the following information:
-    - Wake-up time: {user_inputs['wake_up_time']}
-    - Sleep time: {user_inputs['sleep_time']}
-    - Activities selected: {', '.join(user_inputs['activities'])}
-    - Hours allocated for activities: {user_inputs['activity_hours']}
-    - Preferred meal times: Breakfast at {user_inputs['breakfast_time']}, Lunch at {user_inputs['lunch_time']}, Dinner at {user_inputs['dinner_time']}
-    - Constraints or preferences: {user_inputs.get('preferences', 'None')}
+    You are an AI assistant specializing in creating structured and efficient daily planners. Your goal is to optimize the user's time while respecting their constraints and preferences.
 
-    Create a structured daily plan that includes time slots for each activity, ensuring constraints are met.
+    **User Information:**
+    - **Wake-up Time:** {user_inputs['wake_up_time']}
+    - **Sleep Time:** {user_inputs['sleep_time']}
+    - **Selected Activities:** {', '.join(user_inputs['activities'])}
+    - **Allocated Time for Activities (in hours):** {user_inputs['activity_hours']}
+    - **Preferred Meal Times:** Breakfast at {user_inputs['breakfast_time']}, Lunch at {user_inputs['lunch_time']}, Dinner at {user_inputs['dinner_time']}
+    - **User Constraints/Preferences:** {user_inputs.get('preferences', 'None')}
+
+    **Task:**
+    - Create a **well-structured** and **realistic** daily schedule, ensuring activities fit within the available time.
+    - Use **a table format** to clearly present the time slots and activities.
+    - Ensure a **logical flow** between activities and maintain proper breaks.
+    - Adjust activities to avoid scheduling conflicts and ensure a smooth daily routine.
+
+    **Output Format:**
+    - Use a **Markdown Table** format with the following columns:  
+      | Time Slot  | Activity | Notes (if any) |
+      |-----------|----------|----------------|
+      | 6:00 AM - 7:00 AM | Wake-up & Morning Routine | Freshen up, meditation, light exercise |
+      | 7:00 AM - 8:00 AM | Workout | Gym/Yoga/Outdoor walk |
+      | 8:00 AM - 8:30 AM | Breakfast | Healthy meal |
+      | 9:00 AM - 12:00 PM | Work Session 1 | Deep focus work |
+      | ... (continue until bedtime) |
+
+    **Output Rules:**
+    - Return the planner in **Markdown Table format** (with `|` and `---` for columns).
+    - Use **clear, concise language** for activities.
+    - Ensure a balanced routine with breaks and transitions.
+    - No unnecessary explanations—only return the structured daily planner table.
+
+    Generate the daily planner now.
     """
 
     response = openai.ChatCompletion.create(

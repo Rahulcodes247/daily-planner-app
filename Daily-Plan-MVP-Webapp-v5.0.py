@@ -71,7 +71,9 @@ def log_app_inputs(user_inputs):
             ", ".join(user_inputs["activities"]),
             json.dumps(user_inputs["activity_hours"]),  # Store activity hours as JSON string
             user_inputs["breakfast_time"],
+            user_inputs["office_start_time"],
             user_inputs["lunch_time"],
+            user_inputs["office_end_time"],
             user_inputs["dinner_time"],
             user_inputs["preferences"]
         ]

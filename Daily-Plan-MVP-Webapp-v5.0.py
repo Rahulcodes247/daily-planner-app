@@ -39,6 +39,18 @@ openai.api_key = OPENAI_API_KEY # Assign directly as a string
 spreadsheet = client.open("daily-planner-app-mvp-feedback")
 sheet = spreadsheet.sheet1  # Access first sheet
 
+# Open Sheet 2 for logging usage
+daily_logs_sheet = spreadsheet.worksheet("Sheet2")  # Ensure Sheet2 exists in your Google Sheet
+
+# Function to log app usage (only timestamp)
+def log_app_usage():
+    try:
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        daily_logs_sheet.append_row([timestamp])
+        st.success("Usage logged successfully in Sheet 2!")
+    except Exception as e:
+        st.error(f"An error occurred while logging usage: {e}")
+
 # Function to save feedback to Google Sheets
 def save_feedback_to_gsheet(feedback):
     try:
@@ -153,6 +165,9 @@ def main():
         st.session_state.daily_plan = daily_plan
         st.session_state.user_inputs = user_inputs
 
+        # Log the usage in Sheet 2
+        log_app_usage()
+    
     # Display the daily plan if it exists
     if "daily_plan" in st.session_state and st.session_state.daily_plan:
         st.subheader("Your Daily Planner:")

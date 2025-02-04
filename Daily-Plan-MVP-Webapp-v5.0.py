@@ -27,8 +27,6 @@ GCP_CREDENTIALS_dict = json.loads(GCP_CREDENTIALS)
 credentials = service_account.Credentials.from_service_account_info(GCP_CREDENTIALS_dict, scopes=SCOPES)
 client = gspread.authorize(credentials)
 
-st.write("✅ Successfully authenticated with Google Sheets API!")
-
 # Load OpenAI API Key from Streamlit secrets
 OPENAI_API_KEY = st.secrets["openai"]["OPENAI_API_KEY"]
 
@@ -47,10 +45,7 @@ def log_app_usage():
     try:
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         daily_logs_sheet.append_row([timestamp])
-        st.success("Usage logged successfully in Sheet 2!")
-    except Exception as e:
-        st.error(f"An error occurred while logging usage: {e}")
-
+        
 # Function to save feedback to Google Sheets
 def save_feedback_to_gsheet(feedback):
     try:
@@ -79,10 +74,7 @@ def log_app_inputs(user_inputs):
             user_inputs["preferences"]
         ]
         daily_logs_inputs.append_row(log_data)
-        st.success("Inputs logged successfully in Sheet 3!")
-    except Exception as e:
-        st.error(f"An error occurred while logging usage: {e}")
-
+        
 # Function to generate daily plan
 def generate_daily_plan(user_inputs):
     prompt = f"""

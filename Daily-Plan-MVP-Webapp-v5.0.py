@@ -120,7 +120,7 @@ def generate_daily_plan(user_inputs):
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[
-            {"role": "system", "content": "You are an assistant specializing in personalized daily planners."},
+            {"role": "system", "content": "You are an assistant specializing in creating efficient, realistic, and personalized daily planners for busy professionals. Your output should be clear, well structured, and actionable."},
             {"role": "user", "content": prompt}
         ]
     )
@@ -144,9 +144,16 @@ def main():
     # Step 2: Ask for key activities selection
     st.subheader("Select the key activities you want to include in your daily plan:")
     activities = [
-        "Sleep", "Commute", "Eating Food", "Body Care", "Office Work", "Family Time", 
-        "Fitness", "Meditation", "Reading", "Personal Development", "Writing", 
-        "Social Media", "Cooking", "Caring for Kid", "Playing", "Playing with Kid"
+    "Commute/Travel", 
+    "Work/Office Tasks", 
+    "Meals", 
+    "Fitness/Exercise", 
+    "Personal Care", 
+    "Family Time", 
+    "Personal Development", 
+    "Relaxation/Leisure", 
+    "Social/Networking",
+    "Passion Project"
     ]
     
     if 'selected_activities' not in st.session_state:

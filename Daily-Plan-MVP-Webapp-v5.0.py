@@ -75,7 +75,7 @@ def generate_daily_plan(user_inputs):
     """
 
     response = openai.ChatCompletion.create(
-        model="gpt-4-turbo",
+        model="gpt-3.5-turbo",
         messages=[
             {"role": "system", "content": "You are an assistant specializing in personalized daily planners."},
             {"role": "user", "content": prompt}

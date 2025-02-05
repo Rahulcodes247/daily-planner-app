@@ -184,18 +184,18 @@ def main():
         st.session_state.lunch_time = datetime.time(13, 0)
     if 'dinner_time' not in st.session_state:
         st.session_state.dinner_time = datetime.time(20, 0)
-
+    
+    breakfast_time = st.time_input("Preferred time for breakfast?", value=st.session_state.breakfast_time, key="breakfast_time")
+    lunch_time = st.time_input("Preferred time for lunch?", value=st.session_state.lunch_time, key="lunch_time")
+    dinner_time = st.time_input("Preferred time for dinner?", value=st.session_state.dinner_time, key="dinner_time")
+    
     # Step X: Ask preferred times for Office
     st.subheader("Preferred Office Start and End Time")
     if 'office_start_time' not in st.session_state:
         st.session_state.office_start_time = datetime.time(10, 0)
     if 'office_end_time' not in st.session_state:
         st.session_state.office_end_time = datetime.time(18, 0)
-
     
-    breakfast_time = st.time_input("Preferred time for breakfast?", value=st.session_state.breakfast_time, key="breakfast_time")
-    lunch_time = st.time_input("Preferred time for lunch?", value=st.session_state.lunch_time, key="lunch_time")
-    dinner_time = st.time_input("Preferred time for dinner?", value=st.session_state.dinner_time, key="dinner_time")
     office_start_time = st.time_input("Preferred time to start Office work?", value=st.session_state.office_start_time, key="office_start_time")
     office_end_time = st.time_input("Preferred time to end Office work?", value=st.session_state.office_end_time, key="office_end_time")
 

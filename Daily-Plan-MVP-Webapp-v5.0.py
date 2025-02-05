@@ -144,6 +144,30 @@ def main():
     wake_up_time = st.time_input("What time do you wake up?", value=st.session_state.wake_up_time, key="wake_up_time")
     sleep_time = st.time_input("What time do you go to sleep?", value=st.session_state.sleep_time, key="sleep_time")
     
+ 
+    # Step X: Ask preferred times for Office
+    st.subheader("Preferred Office Start and End Time")
+    if 'office_start_time' not in st.session_state:
+        st.session_state.office_start_time = datetime.time(10, 0)
+    if 'office_end_time' not in st.session_state:
+        st.session_state.office_end_time = datetime.time(18, 0)
+    
+    office_start_time = st.time_input("Preferred time to start Office work?", value=st.session_state.office_start_time, key="office_start_time")
+    office_end_time = st.time_input("Preferred time to end Office work?", value=st.session_state.office_end_time, key="office_end_time")
+
+    # Step 4: Ask preferred times for meals
+    st.subheader("Preferred Meal Times")
+    if 'breakfast_time' not in st.session_state:
+        st.session_state.breakfast_time = datetime.time(8, 0)
+    if 'lunch_time' not in st.session_state:
+        st.session_state.lunch_time = datetime.time(13, 0)
+    if 'dinner_time' not in st.session_state:
+        st.session_state.dinner_time = datetime.time(20, 0)
+    
+    breakfast_time = st.time_input("Preferred time for breakfast?", value=st.session_state.breakfast_time, key="breakfast_time")
+    lunch_time = st.time_input("Preferred time for lunch?", value=st.session_state.lunch_time, key="lunch_time")
+    dinner_time = st.time_input("Preferred time for dinner?", value=st.session_state.dinner_time, key="dinner_time")
+    
     # Step 2: Ask for key activities selection
     st.subheader("Select the key activities you want to include in your daily plan:")
     activities = [
@@ -164,7 +188,7 @@ def main():
 
     selected_activities = st.multiselect("Select activities", activities, default=st.session_state.selected_activities, key="selected_activities")
 
-# Step 3: Ask for hours for each selected activity
+    # Step 3: Ask for hours for each selected activity
     activity_hours = {}
     for activity in selected_activities:
         if f"hours_{activity}" not in st.session_state:
@@ -174,31 +198,8 @@ def main():
                                                   min_value=0.0, max_value=24.0, 
                                                   value=float(st.session_state[f"hours_{activity}"]), 
                                                   step=0.1, key=f"hours_{activity}")
- 
 
-    # Step 4: Ask preferred times for meals
-    st.subheader("Preferred Meal Times")
-    if 'breakfast_time' not in st.session_state:
-        st.session_state.breakfast_time = datetime.time(8, 0)
-    if 'lunch_time' not in st.session_state:
-        st.session_state.lunch_time = datetime.time(13, 0)
-    if 'dinner_time' not in st.session_state:
-        st.session_state.dinner_time = datetime.time(20, 0)
     
-    breakfast_time = st.time_input("Preferred time for breakfast?", value=st.session_state.breakfast_time, key="breakfast_time")
-    lunch_time = st.time_input("Preferred time for lunch?", value=st.session_state.lunch_time, key="lunch_time")
-    dinner_time = st.time_input("Preferred time for dinner?", value=st.session_state.dinner_time, key="dinner_time")
-    
-    # Step X: Ask preferred times for Office
-    st.subheader("Preferred Office Start and End Time")
-    if 'office_start_time' not in st.session_state:
-        st.session_state.office_start_time = datetime.time(10, 0)
-    if 'office_end_time' not in st.session_state:
-        st.session_state.office_end_time = datetime.time(18, 0)
-    
-    office_start_time = st.time_input("Preferred time to start Office work?", value=st.session_state.office_start_time, key="office_start_time")
-    office_end_time = st.time_input("Preferred time to end Office work?", value=st.session_state.office_end_time, key="office_end_time")
-
    # Step 5: Ask for any constraints or preferences
     if 'preferences' not in st.session_state:
         st.session_state.preferences = ""

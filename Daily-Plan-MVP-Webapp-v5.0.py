@@ -103,12 +103,12 @@ def generate_daily_plan(user_inputs):
 
     **Output Format:**
     - Use a **Markdown Table** format with the following columns:  
-      | Time Slot  | Activity | Notes (if any) |
-      |-----------|----------|----------------|
-      | 6:00 AM - 7:00 AM | Wake-up & Morning Routine | Freshen up, meditation, light exercise |
-      | 7:00 AM - 8:00 AM | Workout | Gym/Yoga/Outdoor walk |
-      | 8:00 AM - 8:30 AM | Breakfast | Healthy meal |
-      | 9:00 AM - 12:00 PM | Work Session 1 | Deep focus work |
+      | Time Slot  | Activity |
+      |-----------|----------|
+      | 6:00 AM - 7:00 AM | Wake-up & Morning Routine |
+      | 7:00 AM - 8:00 AM | Workout |
+      | 8:00 AM - 8:30 AM | Breakfast |
+      | 9:00 AM - 12:00 PM | Work Session 1 |
       | ... (continue until bedtime) |
 
     **Output Rules:**

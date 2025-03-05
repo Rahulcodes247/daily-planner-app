@@ -33,36 +33,49 @@ OPENAI_API_KEY = st.secrets["openai"]["OPENAI_API_KEY"]
 # Set the OpenAI API key for use in your application
 openai.api_key = OPENAI_API_KEY # Assign directly as a string
 
-# Open the Google Sheet
-spreadsheet = client.open("daily-planner-app-mvp-feedback")
-sheet = spreadsheet.sheet1  # Access first sheet
-
-# Open Sheet 2 for logging usage
-daily_logs_sheet = spreadsheet.worksheet("Sheet2")  # Ensure Sheet2 exists in your Google Sheet
-
-# Function to log app usage (only timestamp)
-def log_app_usage():
+# Instead of opening the spreadsheet globally, define a function to open it when needed.
+def open_spreadsheet():
     try:
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        daily_logs_sheet.append_row([timestamp])
+        # Use the spreadsheet ID for more reliable access
+        SPREADSHEET_ID = "1ZF6EPGNl6aqh3-pH9cvJkR9nn42h0q9OgJJDkVIGbLc"  # Replace with your actual spreadsheet ID
+        return client.open_by_key(SPREADSHEET_ID)
     except Exception as e:
-        st.error(f"Trivia1: {e}")
-        
-# Function to save feedback to Google Sheets
+        st.error(f"Error opening spreadsheet: {e}")
+        return None
+
+# Function to save feedback to Google Sheets in Sheet1 (for example)
 def save_feedback_to_gsheet(feedback):
+    sheet = open_spreadsheet()
+    if sheet is None:
+        return
     try:
+        worksheet = sheet.sheet1
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        sheet.append_row([timestamp, feedback])
+        worksheet.append_row([timestamp, feedback])
         st.success("Feedback saved to Google Sheets!")
     except Exception as e:
-        st.error(f"An error occurred: {e}")
+        st.error(f"An error occurred while saving feedback: {e}")
 
-# Open Sheet 3 for logging usage
-daily_logs_inputs = spreadsheet.worksheet("Sheet3")  # Assuming Sheet3 is present
 
-# Function to log each use of the app
-def log_app_inputs(user_inputs):
+# Function to log app usage to Google Sheets in Sheet2 (only timestamp)
+def log_app_usage():
+    sheet = open_spreadsheet()
+    if sheet is None:
+        return
     try:
+        worksheet = sheet.sheet2
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        worksheet.append_row([timestamp])
+    except Exception as e:
+        st.error(f"Trivia1: {e}")
+
+# Function to log each use of the app to Google Sheets in Sheet3
+def log_app_inputs(user_inputs):
+    sheet = open_spreadsheet()
+    if sheet is None:
+        return
+    try:
+        worksheet = sheet.sheet3
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         log_data = [
             timestamp,
@@ -77,9 +90,10 @@ def log_app_inputs(user_inputs):
             user_inputs["dinner_time"],
             user_inputs["preferences"]
         ]
-        daily_logs_inputs.append_row(log_data)
+        worksheet.append_row(log_data)
     except Exception as e:
         st.error(f"Trivia2: {e}")
+
         
 # Function to generate daily plan
 def generate_daily_plan(user_inputs):
@@ -129,7 +143,7 @@ def generate_daily_plan(user_inputs):
     )
     return response.choices[0].message['content'].strip()
 
-# Streamlit UI
+# Main Streamlit UI
 def main():
     st.title("Personalized Daily Planner Assistant")
     st.write("Plan your day efficiently with AI-driven assistance.")

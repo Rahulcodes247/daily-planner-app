@@ -9,7 +9,7 @@ import gspread
 from google.oauth2.service_account import Credentials
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
-import time # for sleep delays in retry loops
+import time as t # for sleep delays in retry loops
 
 # Define the required scopes
 SCOPES = [
@@ -40,7 +40,7 @@ def open_spreadsheet(sheet_id, retries=3, delay=2):
         try:
             return client.open_by_key(sheet_id)
         except Exception as e:
-            time.sleep(delay)
+            t.sleep(delay)
     return None
 
 # Retry function for appending a row to a worksheet
@@ -50,7 +50,7 @@ def append_row(worksheet, row, retries=3, delay=2):
             worksheet.append_row(row)
             return True
         except Exception as e:
-            time.sleep(delay)
+            t.sleep(delay)
     return False
     
 

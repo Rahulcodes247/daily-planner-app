@@ -193,10 +193,29 @@ def main():
     st.subheader("Preferred Meal Times")
     if 'breakfast_time' not in st.session_state:
         st.session_state.breakfast_time = datetime.time(8, 0)
+    skip_breakfast = st.checkbox("Skip Breakfast?", key="skip_breakfast")
+    if skip_breakfast:
+        breakfast_time = "Skipped"
+    else:
+        breakfast_time = st.time_input("Preferred time for breakfast?", value=st.session_state.breakfast_time, key="breakfast_time")
+    
     if 'lunch_time' not in st.session_state:
         st.session_state.lunch_time = datetime.time(13, 0)
+    skip_lunch = st.checkbox("Skip Lunch?", key="skip_lunch")
+    if skip_lunch:
+        lunch_time = "Skipped"
+    else:
+        lunch_time = st.time_input("Preferred time for lunch?", value=st.session_state.lunch_time, key="lunch_time")
+  
     if 'dinner_time' not in st.session_state:
         st.session_state.dinner_time = datetime.time(20, 0)
+    skip_dinner = st.checkbox("Skip Dinner?", key="skip_dinner")
+    if skip_dinner:
+        dinner_time = "Skipped"
+    else:
+        dinner_time = st.time_input("Preferred time for dinner?", value=st.session_state.dinner_time, key="dinner_time")
+
+
     
     breakfast_time = st.time_input("Preferred time for breakfast?", value=st.session_state.breakfast_time, key="breakfast_time")
     lunch_time = st.time_input("Preferred time for lunch?", value=st.session_state.lunch_time, key="lunch_time")
@@ -249,9 +268,9 @@ def main():
             "sleep_time": str(sleep_time),
             "activities": selected_activities,
             "activity_hours": activity_hours,
-            "breakfast_time": str(breakfast_time),
-            "lunch_time": str(lunch_time),
-            "dinner_time": str(dinner_time),
+            "breakfast_time": breakfast_time if isinstance(breakfast_time, str) else str(breakfast_time),
+            "lunch_time": lunch_time if isinstance(lunch_time, str) else str(lunch_time),
+            "dinner_time": dinner_time if isinstance(dinner_time, str) else str(dinner_time),
             "office_start_time": str(office_start_time),
             "office_end_time": str(office_end_time),
             "preferences": preferences

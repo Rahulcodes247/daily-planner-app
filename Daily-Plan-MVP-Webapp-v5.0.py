@@ -216,11 +216,6 @@ def main():
         dinner_time = st.time_input("Preferred time for dinner?", value=st.session_state.dinner_time, key="dinner_time_input")
 
 
-    
-    breakfast_time = st.time_input("Preferred time for breakfast?", value=st.session_state.breakfast_time, key="breakfast_time")
-    lunch_time = st.time_input("Preferred time for lunch?", value=st.session_state.lunch_time, key="lunch_time")
-    dinner_time = st.time_input("Preferred time for dinner?", value=st.session_state.dinner_time, key="dinner_time")
-    
     # Step 2: Ask for key activities selection
     st.subheader("Select the key activities you want to include in your daily plan:")
     activities = [

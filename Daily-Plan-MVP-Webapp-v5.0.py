@@ -218,7 +218,8 @@ def main():
 
     # Step 2: Ask for key activities selection
     st.subheader("Select the key activities you want to include in your daily plan:")
-    activities = [
+    # Predefined activities list
+    default_activities = [
     "Commute/Travel", 
     "Work/Office Tasks",
     "Personal Development", 
@@ -226,15 +227,31 @@ def main():
     "Personal Care", 
     "Family Time",  
     "Relaxation/Leisure", 
-    "Social/Networking",
     "Passion Project",
-    "Snacks"
     ]
+    # Initialize custom activities list in session state if not already set
+    if "custom_activities" not in st.session_state:
+        st.session_state.custom_activities = []
     
-    if 'selected_activities' not in st.session_state:
+    # Allow user to add a custom activity (one at a time)
+    custom_activity = st.text_input("Add a custom activity (optional):", key="custom_activity_input")
+    if custom_activity:
+        # If not already added, append to session state's custom activities list
+        if custom_activity not in st.session_state.custom_activities:
+            st.session_state.custom_activities.append(custom_activity)
+            st.success(f"Added custom activity: {custom_activity}")
+    
+    # Combine default and custom activities
+    all_activities = default_activities + st.session_state.custom_activities
+    
+    # Let user select activities from the combined list
+    if "selected_activities" not in st.session_state:
         st.session_state.selected_activities = []
+    
+    selected_activities = st.multiselect("Select activities", all_activities, 
+                                           default=st.session_state.selected_activities, 
+                                           key="selected_activities")
 
-    selected_activities = st.multiselect("Select activities", activities, default=st.session_state.selected_activities, key="selected_activities")
 
     # Step 3: Ask for hours for each selected activity
     activity_hours = {}

@@ -237,23 +237,32 @@ def main():
     # Combine default and custom activities
     all_activities = default_activities + st.session_state.custom_activities
   
-    # Let user select activities from the combined list
+    # Initialize selected activities in session state if not already set
     if "selected_activities" not in st.session_state:
         st.session_state.selected_activities = []
     
-    selected_activities = st.multiselect("Select activities", all_activities, 
-                                           default=st.session_state.selected_activities, 
-                                           key="selected_activities")
-
-    # Allow user to add a custom activity below the multiselect box
+    # Create a container for the multiselect widget
+    with st.container():
+        selected_activities = st.multiselect(
+            "Select activities",
+            all_activities,
+            default=st.session_state.selected_activities,
+            key="selected_activities"
+        )
+        # Update the session state with current selection
+        st.session_state.selected_activities = selected_activities
+    
+    # Place the custom activity input box below the multiselect widget
     custom_activity = st.text_input("Add a custom activity (optional):", key="custom_activity_input")
     if custom_activity:
-        # If it's a new custom activity, add it to custom_activities and automatically select it
+        # Add the custom activity if not already present in the custom list
         if custom_activity not in st.session_state.custom_activities:
             st.session_state.custom_activities.append(custom_activity)
-            st.success(f"Added custom activity: {custom_activity}")
+        # Automatically add it to the selected activities if not already selected
         if custom_activity not in st.session_state.selected_activities:
             st.session_state.selected_activities.append(custom_activity)
+        # Force a rerun so that the multiselect updates immediately with the new activity preselected
+        st.experimental_rerun()
 
     # Step 3: Ask for hours for each selected activity
     activity_hours = {}

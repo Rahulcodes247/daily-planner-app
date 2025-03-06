@@ -9,6 +9,7 @@ import gspread
 from google.oauth2.service_account import Credentials
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
+import time # for sleep delays in retry loops
 
 # Define the required scopes
 SCOPES = [
@@ -33,56 +34,76 @@ OPENAI_API_KEY = st.secrets["openai"]["OPENAI_API_KEY"]
 # Set the OpenAI API key for use in your application
 openai.api_key = OPENAI_API_KEY # Assign directly as a string
 
-# Instead of opening the spreadsheet globally, define a function to open it when needed.
-def open_spreadsheet():
-    try:
-        # Use the spreadsheet ID for more reliable access
-        SPREADSHEET_ID = "1ZF6EPGNl6aqh3-pH9cvJkR9nn42h0q9OgJJDkVIGbLc"  # Replace with your actual spreadsheet ID
-        return client.open_by_key(SPREADSHEET_ID)
-    except Exception as e:
-        st.error(f"Error opening spreadsheet: {e}")
-        return None
+# Retry function for opening the spreadsheet by key
+def open_spreadsheet(sheet_id, retries=3, delay=2):
+    for i in range(retries):
+        try:
+            return client.open_by_key(sheet_id)
+        except Exception as e:
+            time.sleep(delay)
+    return None
 
-# Function to save feedback to Google Sheets in Sheet1 (for example)
+# Retry function for appending a row to a worksheet
+def append_row(worksheet, row, retries=3, delay=2):
+    for i in range(retries):
+        try:
+            worksheet.append_row(row)
+            return True
+        except Exception as e:
+            time.sleep(delay)
+    return False
+    
+
+# Use the spreadsheet ID for more reliable access
+SPREADSHEET_ID = "1ZF6EPGNl6aqh3-pH9cvJkR9nn42h0q9OgJJDkVIGbLc"  # Replace with your actual spreadsheet ID
+
+# Instead of opening the spreadsheet globally, define a function to open it when needed.
+def open_my_spreadsheet():
+    return open_spreadsheet(SPREADSHEET_ID)
+
+# Function to save feedback to Google Sheets in Sheet1
 def save_feedback_to_gsheet(feedback):
-    sheet = open_spreadsheet()
-    if sheet is None:
+    sheet_obj = open_my_spreadsheet()
+    if sheet_obj is None:
+        st.error("Unable to open spreadsheet.")
         return
     try:
-        worksheet = sheet.sheet1
+        worksheet = sheet_obj.sheet1
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        worksheet.append_row([timestamp, feedback])
-        st.success("Feedback saved to Google Sheets!")
+        row = [timestamp, feedback]
+        if append_row(worksheet, row):
+            st.success("Feedback saved to Google Sheets!")
+        else:
+            st.error("Failed to append feedback after multiple attempts.")
     except Exception as e:
         st.error(f"An error occurred while saving feedback: {e}")
 
-
-# Function to log app usage to Google Sheets in Sheet2 (only timestamp)
+# Function to log app usage to Sheet2 (only timestamp)
 def log_app_usage():
-    sheet = open_spreadsheet()
-    if sheet is None:
+    sheet_obj = open_my_spreadsheet()
+    if sheet_obj is None:
         return
     try:
-        worksheet = sheet.sheet2
+        worksheet = sheet_obj.worksheet("Sheet2")
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        worksheet.append_row([timestamp])
+        append_row(worksheet, [timestamp])
     except Exception as e:
-        st.error(f"Trivia1: {e}")
+        st.error(f"Error logging app usage: {e}")
 
-# Function to log each use of the app to Google Sheets in Sheet3
+# Function to log each use of the app to Sheet3 (with user inputs)
 def log_app_inputs(user_inputs):
-    sheet = open_spreadsheet()
-    if sheet is None:
+    sheet_obj = open_my_spreadsheet()
+    if sheet_obj is None:
         return
     try:
-        worksheet = sheet.sheet3
+        worksheet = sheet_obj.worksheet("Sheet3")
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         log_data = [
             timestamp,
             user_inputs["wake_up_time"],
             user_inputs["sleep_time"],
             ", ".join(user_inputs["activities"]),
-            json.dumps(user_inputs["activity_hours"]),  # Store activity hours as JSON string
+            json.dumps(user_inputs["activity_hours"]),
             user_inputs["breakfast_time"],
             user_inputs["office_start_time"],
             user_inputs["lunch_time"],
@@ -90,10 +111,9 @@ def log_app_inputs(user_inputs):
             user_inputs["dinner_time"],
             user_inputs["preferences"]
         ]
-        worksheet.append_row(log_data)
+        append_row(worksheet, log_data)
     except Exception as e:
-        st.error(f"Trivia2: {e}")
-
+        st.error(f"Error logging app inputs: {e}")
         
 # Function to generate daily plan
 def generate_daily_plan(user_inputs):

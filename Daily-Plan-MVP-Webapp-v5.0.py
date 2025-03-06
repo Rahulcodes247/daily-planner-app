@@ -197,7 +197,7 @@ def main():
     if skip_breakfast:
         breakfast_time = "Skipped"
     else:
-        breakfast_time = st.time_input("Preferred time for breakfast?", value=st.session_state.breakfast_time, key="breakfast_time")
+        breakfast_time = st.time_input("Preferred time for breakfast?", value=st.session_state.breakfast_time, key="breakfast_time_input")
     
     if 'lunch_time' not in st.session_state:
         st.session_state.lunch_time = datetime.time(13, 0)
@@ -205,7 +205,7 @@ def main():
     if skip_lunch:
         lunch_time = "Skipped"
     else:
-        lunch_time = st.time_input("Preferred time for lunch?", value=st.session_state.lunch_time, key="lunch_time")
+        lunch_time = st.time_input("Preferred time for lunch?", value=st.session_state.lunch_time, key="lunch_time_input")
   
     if 'dinner_time' not in st.session_state:
         st.session_state.dinner_time = datetime.time(20, 0)
@@ -213,7 +213,7 @@ def main():
     if skip_dinner:
         dinner_time = "Skipped"
     else:
-        dinner_time = st.time_input("Preferred time for dinner?", value=st.session_state.dinner_time, key="dinner_time")
+        dinner_time = st.time_input("Preferred time for dinner?", value=st.session_state.dinner_time, key="dinner_time_input")
 
 
     

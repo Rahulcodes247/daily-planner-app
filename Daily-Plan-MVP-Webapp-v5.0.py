@@ -250,11 +250,6 @@ def main():
     # Store selections in session state
     st.session_state.selected_activities = selected_activities
     
-    # Display selected activities for time selection
-    if selected_activities:
-        st.subheader("Allocate Time for Activities")
-        for activity in selected_activities:
-            st.time_input(f"Time for {activity}:", key=f"time_{activity}")
     
     
     # Step 3: Ask for hours for each selected activity

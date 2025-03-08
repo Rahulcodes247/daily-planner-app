@@ -218,10 +218,10 @@ def main():
 
     # Step 2: Ask for key activities selection
     st.subheader("Select the key activities you want to include in your daily plan:")
+    
     # Predefined activities list
-    selected_activities = st.multiselect(
-    "Choose your daily activities:",
-    options=["Commute/Travel", 
+    default_activities = [
+    "Commute/Travel", 
     "Work/Office Tasks",
     "Personal Development", 
     "Fitness/Exercise", 
@@ -230,55 +230,31 @@ def main():
     "Relaxation/Leisure", 
     "Passion Project",
     ]
-    )
+    
 
-    # Initialize session state for custom activities if not already set
-    if "custom_activities" not in st.session_state:
-        st.session_state.custom_activities = []
+    # Initialize session state
+    st.session_state.setdefault("custom_activities", [])
+    st.session_state.setdefault("selected_activities", [])
     
-    # Initialize session state for selected activities if not already set
-    if "selected_activities" not in st.session_state:
-        st.session_state.selected_activities = []
+    # Allow selection of predefined + custom activities
+    all_activities = default_activities + st.session_state.custom_activities
+    selected_activities = st.multiselect("Choose activities:", options=all_activities, default=st.session_state.selected_activities)
     
-    # Initialize a version counter for the multiselect widget if not set
-    if "multiselect_version" not in st.session_state:
-        st.session_state.multiselect_version = 1
+    # Add custom activity if needed
+    custom_activity = st.text_input("Add a custom activity:")
+    if custom_activity and custom_activity not in all_activities:
+        st.session_state.custom_activities.append(custom_activity)
+        selected_activities.append(custom_activity)  # Auto-select new custom activity
+        st.experimental_rerun()  # Refresh UI to reflect the new addition
     
-    def render_multiselect():
-        # Combine selected and custom activities
-        all_activities =  st.session_state.selected_activities + st.session_state.custom_activities
-        # Use a unique key that incorporates the version counter
-        widget_key = f"selected_activities_{st.session_state.multiselect_version}"
-        # Render the multiselect; its default selection comes from session state
-        selection = st.multiselect(
-            "Select activities", 
-            options=all_activities, 
-            default=st.session_state.selected_activities,
-            key=widget_key
-        )
-        # Save the selection back to session state for later use
-        st.session_state.selected_activities = selection
+    # Store selections in session state
+    st.session_state.selected_activities = selected_activities
     
-    # Create a container for the multiselect widget
-    multiselect_container = st.container()
-    with multiselect_container:
-        render_multiselect()
-    
-    # Place the custom activity input box below the multiselect widget
-    custom_activity = st.text_input("Add a custom activity (optional):", key="custom_activity_input")
-    if custom_activity:
-        if custom_activity not in st.session_state.custom_activities:
-            st.session_state.custom_activities.append(custom_activity)
-            st.success(f"Custom activity '{custom_activity}' added to the dropdown.")
-        # Increment version counter to force the multiselect widget to re-render with a new key
-        st.session_state.multiselect_version += 1
-        # Clear the container and re-render the multiselect widget
-        multiselect_container.empty()
-        with multiselect_container:
-            render_multiselect()
-    
-    # Display selected activities for verification
-    st.write("Selected activities:", st.session_state.get("selected_activities", []))
+    # Display selected activities for time selection
+    if selected_activities:
+        st.subheader("Allocate Time for Activities")
+        for activity in selected_activities:
+            st.time_input(f"Time for {activity}:", key=f"time_{activity}")
     
     
     # Step 3: Ask for hours for each selected activity

@@ -245,7 +245,7 @@ def main():
     if custom_activity and custom_activity not in all_activities:
         st.session_state.custom_activities.append(custom_activity)
         selected_activities.append(custom_activity)  # Auto-select new custom activity
-        st.experimental_rerun()  # Refresh UI to reflect the new addition
+        st.rerun()  # Refresh UI to reflect the new addition
     
     # Store selections in session state
     st.session_state.selected_activities = selected_activities

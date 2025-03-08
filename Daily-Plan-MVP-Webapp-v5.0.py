@@ -219,8 +219,9 @@ def main():
     # Step 2: Ask for key activities selection
     st.subheader("Select the key activities you want to include in your daily plan:")
     # Predefined activities list
-    default_activities = [
-    "Commute/Travel", 
+    selected_activities = st.multiselect(
+    "Choose your daily activities:",
+    options=["Commute/Travel", 
     "Work/Office Tasks",
     "Personal Development", 
     "Fitness/Exercise", 
@@ -229,6 +230,7 @@ def main():
     "Relaxation/Leisure", 
     "Passion Project",
     ]
+    )
 
     # Initialize session state for custom activities if not already set
     if "custom_activities" not in st.session_state:

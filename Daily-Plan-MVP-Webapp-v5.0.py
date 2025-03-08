@@ -234,41 +234,37 @@ def main():
     if "custom_activities" not in st.session_state:
         st.session_state.custom_activities = []
 
-    
-    # Initialize session state for selected activities if not already set
-    if "selected_activities" not in st.session_state:
-        st.session_state.selected_activities = []
-    
-    # Function to render the multiselect widget within a container
-    def render_multiselect():
-        # Combine default and custom activities
-        all_activities = default_activities + st.session_state.custom_activities
-        selected = multiselect_container.multiselect(
-            "Select activities", 
-            options=all_activities, 
-            default=st.session_state.selected_activities,
-            key="selected_activities"  # widget key remains constant
-        )
-        # Save the selection to session state
-        st.session_state.selected_activities = selected
-    
+    # Combine default and custom activities; custom ones appear after defaults
+    all_activities = default_activities + st.session_state.custom_activities
+
     # Create a container for the multiselect widget
     multiselect_container = st.container()
     
-    # Render the multiselect widget in the container
-    render_multiselect()
+    # Function to render the multiselect widget inside the container
+    def render_multiselect():
+        # Use st.session_state.get("selected_activities", []) for default selection
+        return multiselect_container.multiselect(
+            "Select activities", 
+            options=all_activities, 
+            default=st.session_state.get("selected_activities", []),
+            key="selected_activities"
+        )
+    
+    # Render the multiselect widget
+    selected_activities = render_multiselect()
     
     # Place the custom activity input box below the multiselect widget
     custom_activity = st.text_input("Add a custom activity (optional):", key="custom_activity_input")
     
     if custom_activity:
+        # Add the custom activity if it's not already present
         if custom_activity not in st.session_state.custom_activities:
             st.session_state.custom_activities.append(custom_activity)
             st.success(f"Custom activity '{custom_activity}' added to the dropdown.")
-            # Clear the container and re-render the multiselect widget to update the dropdown
-            multiselect_container.empty()
-            render_multiselect()
-
+        # Clear the multiselect container and re-render the widget with updated options
+        multiselect_container.empty()
+        selected_activities = render_multiselect()
+    
     # Step 3: Ask for hours for each selected activity
     activity_hours = {}
     for activity in selected_activities:

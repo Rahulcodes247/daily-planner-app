@@ -218,37 +218,42 @@ def main():
 
     # Step 2: Ask for key activities selection
     st.subheader("Select the key activities you want to include in your daily plan:")
-    
-    # Predefined activities list
-    default_activities = [
-    "Commute/Travel", 
-    "Work/Office Tasks",
-    "Personal Development", 
-    "Fitness/Exercise", 
-    "Personal Care", 
-    "Family Time",  
-    "Relaxation/Leisure", 
-    "Passion Project",
-    ]
-    
 
     # Initialize session state
     st.session_state.setdefault("custom_activities", [])
     st.session_state.setdefault("selected_activities", [])
     
-    # Allow selection of predefined + custom activities
-    all_activities = default_activities + st.session_state.custom_activities
-    selected_activities = st.multiselect("Choose activities:", options=all_activities, default=st.session_state.selected_activities)
+    predefined_activities = [
+    "Commute/Travel", "Work/Office Tasks", "Personal Development",
+    "Fitness/Exercise", "Personal Care", "Family Time", "Relaxation/Leisure", "Passion Project"
+    ]
     
+    selected_activities = st.multiselect(
+        "Choose your daily activities:",
+        options=predefined_activities + st.session_state.get("custom_activities", []),  # ✅ Include custom activities
+    )
+    
+    # ✅ Only store user-selected activities
+    st.session_state.selected_activities = selected_activities
+    
+    st.write("Debug: Selected Activities →", st.session_state.selected_activities)  # Debugging step
+
     # Add custom activity if needed
-    custom_activity = st.text_input("Add a custom activity:")
-    if custom_activity and custom_activity not in all_activities:
-        st.session_state.custom_activities.append(custom_activity)
-        selected_activities.append(custom_activity)  # Auto-select new custom activity
-        st.rerun()  # Refresh UI to reflect the new addition
+    custom_activity = st.text_input("Add a custom activity (optional):", key="custom_activity_input")
+
+    if custom_activity:
+        if custom_activity not in st.session_state.custom_activities:
+            st.session_state.custom_activities.append(custom_activity)
+            st.session_state.selected_activities.append(custom_activity)  # ✅ Ensure it's added
+            st.success(f"Custom activity '{custom_activity}' added.")
     
+            # Force the UI to refresh
+            st.session_state.multiselect_version += 1
+            st.rerun()  # ✅ Forces UI refresh    
+            
     # Store selections in session state
     st.session_state.selected_activities = selected_activities
+    st.rerun()
     
     
     
@@ -274,11 +279,22 @@ def main():
    
     # Step 6: Compile all inputs and generate the daily plan
     if st.button("Generate Daily Plan", key="generate_button"):
+
+        # Ensure selected activities include custom ones
+        final_activities = st.session_state.get("selected_activities", [])
+        custom_activities = st.session_state.get("custom_activities", [])
+    
+        # Combine predefined and custom activities (in correct order)
+        all_selected_activities = custom_activities + final_activities  
+    
+        # Ensure only selected activities have corresponding hours
+        filtered_activity_hours = {activity: activity_hours.get(activity, 0) for activity in all_selected_activities}
+        
         user_inputs = {
             "wake_up_time": str(wake_up_time),
             "sleep_time": str(sleep_time),
-            "activities": selected_activities,
-            "activity_hours": activity_hours,
+            "activities": all_selected_activities,  # ✅ Use corrected activity list
+            "activity_hours": filtered_activity_hours,  # ✅ Filtered activity hours
             "breakfast_time": breakfast_time if isinstance(breakfast_time, str) else str(breakfast_time),
             "lunch_time": lunch_time if isinstance(lunch_time, str) else str(lunch_time),
             "dinner_time": dinner_time if isinstance(dinner_time, str) else str(dinner_time),

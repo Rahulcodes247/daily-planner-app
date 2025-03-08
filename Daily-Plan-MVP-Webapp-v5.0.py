@@ -245,15 +245,15 @@ def main():
         st.session_state.multiselect_version = 1
     
     def render_multiselect():
-        # Combine default and custom activities
-        all_activities = default_activities + st.session_state.custom_activities
+        # Combine selected and custom activities
+        all_activities =  st.session_state.selected_activities + st.session_state.custom_activities
         # Use a unique key that incorporates the version counter
         widget_key = f"selected_activities_{st.session_state.multiselect_version}"
         # Render the multiselect; its default selection comes from session state
         selection = st.multiselect(
             "Select activities", 
             options=all_activities, 
-            default=st.session_state.get("selected_activities", []),
+            default=st.session_state.selected_activities,
             key=widget_key
         )
         # Save the selection back to session state for later use

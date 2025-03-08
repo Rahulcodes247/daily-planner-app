@@ -229,7 +229,11 @@ def main():
     "Relaxation/Leisure", 
     "Passion Project",
     ]
-    
+
+    # Initialize session state for custom activities if not already set
+    if "custom_activities" not in st.session_state:
+        st.session_state.custom_activities = []
+
     
     # Initialize session state for selected activities if not already set
     if "selected_activities" not in st.session_state:

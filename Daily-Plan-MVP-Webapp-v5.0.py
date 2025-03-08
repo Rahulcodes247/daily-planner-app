@@ -246,16 +246,17 @@ def main():
     def render_multiselect():
         # Combine default and custom activities
         all_activities = default_activities + st.session_state.custom_activities
-        # Use the version number in the key to force a fresh widget on each change
-        key = f"selected_activities_{st.session_state.multiselect_version}"
-        selected = st.multiselect(
+        # Use a unique key that incorporates the version counter
+        widget_key = f"selected_activities_{st.session_state.multiselect_version}"
+        # Render the multiselect; its default selection comes from session state
+        selection = st.multiselect(
             "Select activities", 
             options=all_activities, 
-            default=st.session_state.selected_activities, 
-            key=key
+            default=st.session_state.get("selected_activities", []),
+            key=widget_key
         )
-        # Save the selection in session state (do not update the key "selected_activities")
-        st.session_state.selected_activities = selected
+        # Save the selection back to session state for later use
+        st.session_state.selected_activities = selection
     
     # Create a container for the multiselect widget
     multiselect_container = st.container()
@@ -274,6 +275,10 @@ def main():
         multiselect_container.empty()
         with multiselect_container:
             render_multiselect()
+
+
+    # Display selected activities for verification
+    st.write("Selected activities:", st.session_state.get("selected_activities", []))
     
     # Step 3: Ask for hours for each selected activity
     activity_hours = {}

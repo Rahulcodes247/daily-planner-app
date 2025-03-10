@@ -168,6 +168,19 @@ def main():
     st.title("Personalized Daily Planner Assistant")
     st.write("Plan your day efficiently with AI-driven assistance.")
 
+    # Prevent session reset
+    if "selected_activities" not in st.session_state:
+        st.session_state.selected_activities = []
+    
+    if "custom_activities" not in st.session_state:
+        st.session_state.custom_activities = []
+    
+    if "daily_plan" not in st.session_state:
+        st.session_state.daily_plan = None
+    
+    if "multiselect_version" not in st.session_state:
+        st.session_state.multiselect_version = 1
+    
      # Step 1: Ask wake-up and sleep time
     st.subheader("Daily Routine Setup")
     if 'wake_up_time' not in st.session_state:
@@ -238,15 +251,21 @@ def main():
     
     st.write("Debug: Selected Activities →", st.session_state.selected_activities)  # Debugging step
 
-    # Add custom activity if needed
-    custom_activity = st.text_input("Add a custom activity (optional):", key="custom_activity_input")
-
-    if custom_activity:
-        if custom_activity not in st.session_state.custom_activities:
-            st.session_state.custom_activities.append(custom_activity)
-            st.session_state.selected_activities.append(custom_activity)  # ✅ Ensure it's added
-            st.success(f"Custom activity '{custom_activity}' added.")
+    # Ensure selected activities + custom ones are displayed properly
+    def render_multiselect():
+        all_activities = st.session_state.selected_activities + st.session_state.custom_activities
+        selection = st.multiselect("Select activities", options=all_activities, default=st.session_state.selected_activities)
+        st.session_state.selected_activities = selection
     
+    st.subheader("Select Your Key Activities")
+    render_multiselect()
+    
+    # Add Custom Activity
+    custom_activity = st.text_input("Add a custom activity (optional):")
+    if custom_activity and custom_activity not in st.session_state.custom_activities:
+        st.session_state.custom_activities.append(custom_activity)
+        st.success(f"Custom activity '{custom_activity}' added.")
+        
             # Force the UI to refresh
             st.session_state.multiselect_version += 1
             st.rerun()  # ✅ Forces UI refresh    
@@ -278,7 +297,9 @@ def main():
     
    
     # Step 6: Compile all inputs and generate the daily plan
-    if st.button("Generate Daily Plan", key="generate_button"):
+    generate_button = st.button("Generate Daily Plan", key="generate_button")
+
+    if generate_button:
 
         # Ensure selected activities include custom ones
         final_activities = st.session_state.get("selected_activities", [])
@@ -309,6 +330,7 @@ def main():
         # Store the plan in session state
         st.session_state.daily_plan = daily_plan
         st.session_state.user_inputs = user_inputs
+        # Always show the button so it doesn’t disappear!
 
         # Log the usage in Sheet 2
         log_app_usage()

@@ -266,9 +266,9 @@ def main():
         st.session_state.custom_activities.append(custom_activity)
         st.success(f"Custom activity '{custom_activity}' added.")
         
-            # Force the UI to refresh
-            st.session_state.multiselect_version += 1
-            st.rerun()  # ✅ Forces UI refresh    
+        # Force the UI to refresh
+        st.session_state.multiselect_version += 1
+        st.rerun()  # ✅ Forces UI refresh  
             
     # Store selections in session state
     st.session_state.selected_activities = selected_activities

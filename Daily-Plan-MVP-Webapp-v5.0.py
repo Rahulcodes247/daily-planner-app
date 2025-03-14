@@ -1,4 +1,4 @@
-# Initialize an empty list to avoid 'not defined' errorsimport openai
+import openai
 import streamlit as st
 import json
 import os

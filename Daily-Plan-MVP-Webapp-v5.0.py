@@ -1,4 +1,4 @@
-import openai
+# Initialize an empty list to avoid 'not defined' errorsimport openai
 import streamlit as st
 import json
 import os
@@ -325,18 +325,28 @@ def main():
         st.subheader("Daily Logging & Reflection")
         st.write("Log the major activities you actually did today and reflect on your day.")
 
+        if 'activities_done' not in st.session_state:
+            st.session_state.activities_done = []
+        
         # Step 1: Select activities
         activity_options = [
             "Commute/Travel", "Work/Office Tasks", "Personal Development",
             "Fitness/Exercise", "Personal Care", "Family Time",
             "Relaxation/Leisure", "Social/Networking", "Passion Project", "Snacks"
         ]
-        activities_done = st.multiselect("Select major activities you did today", activity_options)
 
+        
+        # Initialize an empty list to avoid 'not defined' errors
+        activities_done = st.multiselect("Select major activities you did today", activity_options, key="activities_done")
+
+        # Debugging: Print selected activities
+        st.write("Debug: Selected Activities", activities_done)
+        
         # Step 2: Enter hours spent for selected activities
         activity_hours = {}
-        for activity in activities_done:
-            activity_hours[activity] = st.number_input(f"Hours spent on {activity}", min_value=0.0, max_value=24.0, step=0.5, key=f"log_hours_{activity}")
+        if activities_done:  # Ensure at least one activity is selected
+            for activity in activities_done:
+                activity_hours[activity] = st.number_input(f"Hours spent on {activity}", min_value=0.0, max_value=24.0, step=0.5, key=f"log_hours_{activity}")
 
 
         # Reflection Input Fields

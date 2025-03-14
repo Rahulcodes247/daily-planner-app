@@ -73,10 +73,10 @@ def save_daily_log(reflections):
             worksheet = sheet_obj.worksheet("Daily_Logs")
         except gspread.exceptions.WorksheetNotFound:
             worksheet = sheet_obj.add_worksheet(title="Daily_Logs", rows="1000", cols="5")
-            worksheet.append_row(["Timestamp", "What went well?", "Challenges faced", "Lessons learned", "Mood Rating"])
+            worksheet.append_row(["Timestamp", "Date", "Activities Done", "Hours Spent", "What went well?", "Challenges faced", "Lessons learned", "Mood Rating"])
 
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        row = [timestamp, reflections["what_went_well"], reflections["challenges"], reflections["lessons"], reflections["mood_rating"]]
+        row = [timestamp,", ".join(activities_done), json.dumps(activity_hours), reflections["what_went_well"], reflections["challenges"], reflections["lessons"], reflections["mood_rating"]]
         
         if append_row(worksheet, row):
             st.success("Daily reflection saved successfully!")
@@ -323,8 +323,21 @@ def main():
 
     elif mode == "Daily Logging & Reflection":
         st.subheader("Daily Logging & Reflection")
-        st.write("Reflect on your day and capture key learnings.")
+        st.write("Log the major activities you actually did today and reflect on your day.")
 
+        activities_done = st.multiselect(
+            "Select major activities you did today",
+            [
+                "Commute/Travel", "Work/Office Tasks", "Personal Development",
+                "Fitness/Exercise", "Personal Care", "Family Time",
+                "Relaxation/Leisure", "Social/Networking", "Passion Project", "Snacks"
+            ], 
+            key="activities_done"
+        )
+        
+        activity_hours = {activity: st.number_input(f"Hours spent on {activity}", min_value=0.0, max_value=24.0, step=0.5, key=f"log_hours_{activity}") for activity in activities_done}
+        
+        
         # Reflection Input Fields
         what_went_well = st.text_area("What went well today?")
         challenges = st.text_area("What challenges did you face?")
@@ -333,7 +346,13 @@ def main():
 
         # Save the reflections
         if st.button("Save Reflection"):
+            # Convert activities and hours to a readable format
+            activities_str = ", ".join(activities_done)
+            hours_str = ", ".join([f"{activity}: {hours}h" for activity, hours in activity_hours.items()])
             reflections = {
+                "Date": pd.Timestamp.today().strftime("%Y-%m-%d"),
+                "Activities Done": activities_str,
+                "Hours Spent": hours_str,
                 "what_went_well": what_went_well,
                 "challenges": challenges,
                 "lessons": lessons,

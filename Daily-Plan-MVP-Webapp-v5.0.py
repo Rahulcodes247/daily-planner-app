@@ -61,6 +61,31 @@ SPREADSHEET_ID = "1ZF6EPGNl6aqh3-pH9cvJkR9nn42h0q9OgJJDkVIGbLc"  # Replace with 
 def open_my_spreadsheet():
     return open_spreadsheet(SPREADSHEET_ID)
 
+# Function to save daily logging and reflection
+def save_daily_log(reflections):
+    sheet_obj = open_my_spreadsheet()
+    if sheet_obj is None:
+        return
+
+    try:
+        # Check if the "Daily_Logs" sheet exists, create if not
+        try:
+            worksheet = sheet_obj.worksheet("Daily_Logs")
+        except gspread.exceptions.WorksheetNotFound:
+            worksheet = sheet_obj.add_worksheet(title="Daily_Logs", rows="1000", cols="5")
+            worksheet.append_row(["Timestamp", "What went well?", "Challenges faced", "Lessons learned", "Mood Rating"])
+
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        row = [timestamp, reflections["what_went_well"], reflections["challenges"], reflections["lessons"], reflections["mood_rating"]]
+        
+        if append_row(worksheet, row):
+            st.success("Daily reflection saved successfully!")
+        else:
+            st.error("Failed to save reflection.")
+    except Exception as e:
+        st.error(f"An error occurred: {e}")
+
+
 # Function to save feedback to Google Sheets in Sheet1
 def save_feedback_to_gsheet(feedback):
     sheet_obj = open_my_spreadsheet()
@@ -165,129 +190,156 @@ def generate_daily_plan(user_inputs):
 
 # Main Streamlit UI
 def main():
-    st.title("Personalized Daily Planner Assistant")
-    st.write("Plan your day efficiently with AI-driven assistance.")
+    st.title("Personalized Daily Planner & Reflection")
 
-     # Step 1: Ask wake-up and sleep time
-    st.subheader("Daily Routine Setup")
-    if 'wake_up_time' not in st.session_state:
-        st.session_state.wake_up_time = time(6, 0)  # Default to 6:00 AM
-    if 'sleep_time' not in st.session_state:
-        st.session_state.sleep_time = time(22, 0)  # Default to 10:00 PM
-
-    wake_up_time = st.time_input("What time do you wake up?", value=st.session_state.wake_up_time, key="wake_up_time")
-    sleep_time = st.time_input("What time do you go to sleep?", value=st.session_state.sleep_time, key="sleep_time")
+    # Selection Button for Daily Planning vs Daily Logging
+    mode = st.radio("Choose an option:", ["Daily Planning", "Daily Logging & Reflection"])
     
- 
-    # Step X: Ask preferred times for Office
-    st.subheader("Preferred Office Start and End Time")
-    if 'office_start_time' not in st.session_state:
-        st.session_state.office_start_time = datetime.time(10, 0)
-    if 'office_end_time' not in st.session_state:
-        st.session_state.office_end_time = datetime.time(18, 0)
+    if mode == "Daily Planning":
+        st.subheader("Daily Planner")
+        st.write("Plan your day efficiently with AI-driven assistance.")
     
-    office_start_time = st.time_input("Preferred time to start Office work?", value=st.session_state.office_start_time, key="office_start_time")
-    office_end_time = st.time_input("Preferred time to end Office work?", value=st.session_state.office_end_time, key="office_end_time")
-
-    # Step 4: Ask preferred times for meals
-    st.subheader("Preferred Meal Times")
-    if 'breakfast_time' not in st.session_state:
-        st.session_state.breakfast_time = datetime.time(8, 0)
-    if 'lunch_time' not in st.session_state:
-        st.session_state.lunch_time = datetime.time(13, 0)
-    if 'dinner_time' not in st.session_state:
-        st.session_state.dinner_time = datetime.time(20, 0)
+         # Step 1: Ask wake-up and sleep time
+        st.subheader("Daily Routine Setup")
+        if 'wake_up_time' not in st.session_state:
+            st.session_state.wake_up_time = time(6, 0)  # Default to 6:00 AM
+        if 'sleep_time' not in st.session_state:
+            st.session_state.sleep_time = time(22, 0)  # Default to 10:00 PM
     
-    breakfast_time = st.time_input("Preferred time for breakfast?", value=st.session_state.breakfast_time, key="breakfast_time")
-    lunch_time = st.time_input("Preferred time for lunch?", value=st.session_state.lunch_time, key="lunch_time")
-    dinner_time = st.time_input("Preferred time for dinner?", value=st.session_state.dinner_time, key="dinner_time")
-    
-    # Step 2: Ask for key activities selection
-    st.subheader("Select the key activities you want to include in your daily plan:")
-    activities = [
-    "Commute/Travel", 
-    "Work/Office Tasks",
-    "Personal Development", 
-    "Fitness/Exercise", 
-    "Personal Care", 
-    "Family Time",  
-    "Relaxation/Leisure", 
-    "Social/Networking",
-    "Passion Project",
-    "Snacks"
-    ]
-    
-    if 'selected_activities' not in st.session_state:
-        st.session_state.selected_activities = []
-
-    selected_activities = st.multiselect("Select activities", activities, default=st.session_state.selected_activities, key="selected_activities")
-
-    # Step 3: Ask for hours for each selected activity
-    activity_hours = {}
-    for activity in selected_activities:
-        if f"hours_{activity}" not in st.session_state:
-            st.session_state[f"hours_{activity}"] = 1.0  # Default hour as float
+        wake_up_time = st.time_input("What time do you wake up?", value=st.session_state.wake_up_time, key="wake_up_time")
+        sleep_time = st.time_input("What time do you go to sleep?", value=st.session_state.sleep_time, key="sleep_time")
         
-        activity_hours[activity] = st.number_input(f"How many hours for {activity}?", 
-                                                  min_value=0.0, max_value=24.0, 
-                                                  value=float(st.session_state[f"hours_{activity}"]), 
-                                                  step=0.1, key=f"hours_{activity}")
-
-    
-   # Step 5: Ask for any constraints or preferences
-    if 'preferences' not in st.session_state:
-        st.session_state.preferences = ""
+     
+        # Step X: Ask preferred times for Office
+        st.subheader("Preferred Office Start and End Time")
+        if 'office_start_time' not in st.session_state:
+            st.session_state.office_start_time = datetime.time(10, 0)
+        if 'office_end_time' not in st.session_state:
+            st.session_state.office_end_time = datetime.time(18, 0)
         
-    preferences = st.text_area("Any constraints or preferences? (e.g., passion project in the morning, family time before dinner, etc.)", 
-                              value=st.session_state.preferences, key="preferences")
+        office_start_time = st.time_input("Preferred time to start Office work?", value=st.session_state.office_start_time, key="office_start_time")
+        office_end_time = st.time_input("Preferred time to end Office work?", value=st.session_state.office_end_time, key="office_end_time")
     
-   
-    # Step 6: Compile all inputs and generate the daily plan
-    if st.button("Generate Daily Plan", key="generate_button"):
-        user_inputs = {
-            "wake_up_time": str(wake_up_time),
-            "sleep_time": str(sleep_time),
-            "activities": selected_activities,
-            "activity_hours": activity_hours,
-            "breakfast_time": str(breakfast_time),
-            "lunch_time": str(lunch_time),
-            "dinner_time": str(dinner_time),
-            "office_start_time": str(office_start_time),
-            "office_end_time": str(office_end_time),
-            "preferences": preferences
-        }
+        # Step 4: Ask preferred times for meals
+        st.subheader("Preferred Meal Times")
+        if 'breakfast_time' not in st.session_state:
+            st.session_state.breakfast_time = datetime.time(8, 0)
+        if 'lunch_time' not in st.session_state:
+            st.session_state.lunch_time = datetime.time(13, 0)
+        if 'dinner_time' not in st.session_state:
+            st.session_state.dinner_time = datetime.time(20, 0)
         
-        with st.spinner("Generating your daily plan..."):
-            daily_plan = generate_daily_plan(user_inputs)
-
-        # Store the plan in session state
-        st.session_state.daily_plan = daily_plan
-        st.session_state.user_inputs = user_inputs
-
-        # Log the usage in Sheet 2
-        log_app_usage()
-
-        # Log the usage in Sheet 3
-        log_app_inputs(user_inputs)
+        breakfast_time = st.time_input("Preferred time for breakfast?", value=st.session_state.breakfast_time, key="breakfast_time")
+        lunch_time = st.time_input("Preferred time for lunch?", value=st.session_state.lunch_time, key="lunch_time")
+        dinner_time = st.time_input("Preferred time for dinner?", value=st.session_state.dinner_time, key="dinner_time")
+        
+        # Step 2: Ask for key activities selection
+        st.subheader("Select the key activities you want to include in your daily plan:")
+        activities = [
+        "Commute/Travel", 
+        "Work/Office Tasks",
+        "Personal Development", 
+        "Fitness/Exercise", 
+        "Personal Care", 
+        "Family Time",  
+        "Relaxation/Leisure", 
+        "Social/Networking",
+        "Passion Project",
+        "Snacks"
+        ]
+        
+        if 'selected_activities' not in st.session_state:
+            st.session_state.selected_activities = []
     
-    # Display the daily plan if it exists
-    if "daily_plan" in st.session_state and st.session_state.daily_plan:
-        st.subheader("Your Daily Planner:")
-        st.text(st.session_state.daily_plan)
+        selected_activities = st.multiselect("Select activities", activities, default=st.session_state.selected_activities, key="selected_activities")
+    
+        # Step 3: Ask for hours for each selected activity
+        activity_hours = {}
+        for activity in selected_activities:
+            if f"hours_{activity}" not in st.session_state:
+                st.session_state[f"hours_{activity}"] = 1.0  # Default hour as float
+            
+            activity_hours[activity] = st.number_input(f"How many hours for {activity}?", 
+                                                      min_value=0.0, max_value=24.0, 
+                                                      value=float(st.session_state[f"hours_{activity}"]), 
+                                                      step=0.1, key=f"hours_{activity}")
+    
         
-        # Feedback loop for revisions
-        feedback = st.radio("Is this plan okay?", ("Yes", "No"), key="feedback_radio")
-        if feedback == "No":
-            changes = st.text_area("Specify the changes you want:", key="changes_text")
-            if st.button("Regenerate Plan", key="regenerate_button"):
-                st.session_state.user_inputs["Additional Changes"] = changes
-                with st.spinner("Regenerating your daily planner..."):
-                    updated_plan = generate_daily_plan(st.session_state.user_inputs)
-                st.session_state.daily_plan = updated_plan
+       # Step 5: Ask for any constraints or preferences
+        if 'preferences' not in st.session_state:
+            st.session_state.preferences = ""
+            
+        preferences = st.text_area("Any constraints or preferences? (e.g., passion project in the morning, family time before dinner, etc.)", 
+                                  value=st.session_state.preferences, key="preferences")
+        
+       
+        # Step 6: Compile all inputs and generate the daily plan
+        if st.button("Generate Daily Plan", key="generate_button"):
+            user_inputs = {
+                "wake_up_time": str(wake_up_time),
+                "sleep_time": str(sleep_time),
+                "activities": selected_activities,
+                "activity_hours": activity_hours,
+                "breakfast_time": str(breakfast_time),
+                "lunch_time": str(lunch_time),
+                "dinner_time": str(dinner_time),
+                "office_start_time": str(office_start_time),
+                "office_end_time": str(office_end_time),
+                "preferences": preferences
+            }
+            
+            with st.spinner("Generating your daily plan..."):
+                daily_plan = generate_daily_plan(user_inputs)
+    
+            # Store the plan in session state
+            st.session_state.daily_plan = daily_plan
+            st.session_state.user_inputs = user_inputs
+    
+            # Log the usage in Sheet 2
+            log_app_usage()
+    
+            # Log the usage in Sheet 3
+            log_app_inputs(user_inputs)
+        
+        # Display the daily plan if it exists
+        if "daily_plan" in st.session_state and st.session_state.daily_plan:
+            st.subheader("Your Daily Planner:")
+            st.text(st.session_state.daily_plan)
+            
+            # Feedback loop for revisions
+            feedback = st.radio("Is this plan okay?", ("Yes", "No"), key="feedback_radio")
+            if feedback == "No":
+                changes = st.text_area("Specify the changes you want:", key="changes_text")
+                if st.button("Regenerate Plan", key="regenerate_button"):
+                    st.session_state.user_inputs["Additional Changes"] = changes
+                    with st.spinner("Regenerating your daily planner..."):
+                        updated_plan = generate_daily_plan(st.session_state.user_inputs)
+                    st.session_state.daily_plan = updated_plan
+    
+            feedback = st.text_area("Provide feedback:", "")
+            if st.button("Save Feedback"):
+                save_feedback_to_gsheet(feedback)
 
-        feedback = st.text_area("Provide feedback:", "")
-        if st.button("Save Feedback"):
-            save_feedback_to_gsheet(feedback)
+
+    elif mode == "Daily Logging & Reflection":
+        st.subheader("Daily Logging & Reflection")
+        st.write("Reflect on your day and capture key learnings.")
+
+        # Reflection Input Fields
+        what_went_well = st.text_area("What went well today?")
+        challenges = st.text_area("What challenges did you face?")
+        lessons = st.text_area("What lessons did you learn?")
+        mood_rating = st.slider("Rate your mood today (1-10)", 1, 10, 5)
+
+        # Save the reflections
+        if st.button("Save Reflection"):
+            reflections = {
+                "what_went_well": what_went_well,
+                "challenges": challenges,
+                "lessons": lessons,
+                "mood_rating": mood_rating
+            }
+            save_daily_log(reflections)
 
 if __name__ == "__main__":
     main()

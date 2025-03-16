@@ -62,7 +62,7 @@ def open_my_spreadsheet():
     return open_spreadsheet(SPREADSHEET_ID)
 
 # Function to save daily logging and reflection
-def save_daily_log(reflections):
+def save_daily_log(activities_done, activity_hours, reflections):
     sheet_obj = open_my_spreadsheet()
     if sheet_obj is None:
         return
@@ -76,6 +76,8 @@ def save_daily_log(reflections):
             worksheet.append_row(["Timestamp", "Date", "Activities Done", "Hours Spent", "What went well?", "Challenges faced", "Lessons learned", "Mood Rating"])
 
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
+        # Use the passed parameters instead of undefined 'activities_done'
         row = [timestamp,", ".join(activities_done), json.dumps(activity_hours), reflections["what_went_well"], reflections["challenges"], reflections["lessons"], reflections["mood_rating"]]
         
         if append_row(worksheet, row):
@@ -369,7 +371,7 @@ def main():
                 "lessons": lessons,
                 "mood_rating": mood_rating
             }
-            save_daily_log(reflections)
+            save_daily_log(activities_done, activity_hours, reflections)
 
 if __name__ == "__main__":
     main()

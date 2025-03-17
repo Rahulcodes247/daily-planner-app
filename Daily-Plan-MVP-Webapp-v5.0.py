@@ -426,8 +426,8 @@ def main():
 
         # **Feature 1: Select Date or Multiple Days for Reflection**
         selected_dates = st.multiselect(
-            "Select the date(s) for which you want to log reflection",
-            options=pd.date_range(start="2024-01-01", end=datetime.datetime.today()).strftime("%Y-%m-%d").tolist(),
+            "Select the date(s) for which you want to log reflection. End date is today, delete it for a particular date selection, or just select the start date for a duration",
+            options=pd.date_range(start="2024-03-01", end=datetime.datetime.today()).strftime("%Y-%m-%d").tolist(),
             default=[datetime.datetime.today().strftime("%Y-%m-%d")]
         )
 
@@ -444,7 +444,7 @@ def main():
 
         
         # Initialize an empty list to avoid 'not defined' errors
-        activities_done = st.multiselect("Select major activities you did today", activity_options, key="activities_done")
+        activities_done = st.multiselect("Select major activities you did ", activity_options, key="activities_done")
 
         # Step 2: Enter hours spent for selected activities
         activity_hours = {}

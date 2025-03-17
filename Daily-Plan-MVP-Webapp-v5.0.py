@@ -453,6 +453,9 @@ def main():
                 activity_hours[activity] = st.number_input(f"Hours spent on {activity}", min_value=0.0, max_value=24.0, step=0.5, key=f"log_hours_{activity}")
             total_hours = sum(activity_hours.values())  # Calculate total hours dynamically
 
+        # **Fix: Initialize total_hours before referencing it**
+        total_hours = sum(activity_hours.values()) if activity_hours else 0.0
+        
         # **Feature 2: Display Total Hours**
         st.write(f"**Total Hours Spent on Selected Activities:** {total_hours} hours")
 

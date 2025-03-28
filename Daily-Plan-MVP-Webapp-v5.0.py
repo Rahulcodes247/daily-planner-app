@@ -1,9 +1,7 @@
 import openai
 import streamlit as st
 import json
-import os
 import datetime
-from datetime import time
 import pandas as pd
 import gspread
 import matplotlib.pyplot as plt
@@ -24,7 +22,6 @@ GCP_CREDENTIALS = st.secrets["gcp"]["GCP_CREDENTIALS"]
 # Convert string to dictionary for Google Cloud credentials
 GCP_CREDENTIALS_dict = json.loads(GCP_CREDENTIALS)
 
-
 # Authenticate with Google Cloud
 credentials = service_account.Credentials.from_service_account_info(GCP_CREDENTIALS_dict, scopes=SCOPES)
 client = gspread.authorize(credentials)
@@ -35,6 +32,9 @@ OPENAI_API_KEY = st.secrets["openai"]["OPENAI_API_KEY"]
 # Set the OpenAI API key for use in your application
 openai.api_key = OPENAI_API_KEY # Assign directly as a string
 
+# Use the spreadsheet ID for more reliable access
+SPREADSHEET_ID = "1ZF6EPGNl6aqh3-pH9cvJkR9nn42h0q9OgJJDkVIGbLc"  # Replace with your actual spreadsheet ID
+
 # Retry function for opening the spreadsheet by key
 def open_spreadsheet(sheet_id, retries=3, delay=2):
     for i in range(retries):
@@ -43,6 +43,10 @@ def open_spreadsheet(sheet_id, retries=3, delay=2):
         except Exception as e:
             t.sleep(delay)
     return None
+
+# Instead of opening the spreadsheet globally, define a function to open it when needed.
+def open_my_spreadsheet():
+    return open_spreadsheet(SPREADSHEET_ID)
 
 # Retry function for appending a row to a worksheet
 def append_row(worksheet, row, retries=3, delay=2):
@@ -54,107 +58,31 @@ def append_row(worksheet, row, retries=3, delay=2):
             t.sleep(delay)
     return False
     
-
-# Use the spreadsheet ID for more reliable access
-SPREADSHEET_ID = "1ZF6EPGNl6aqh3-pH9cvJkR9nn42h0q9OgJJDkVIGbLc"  # Replace with your actual spreadsheet ID
-
-# Instead of opening the spreadsheet globally, define a function to open it when needed.
-def open_my_spreadsheet():
-    return open_spreadsheet(SPREADSHEET_ID)
-
-# Function to save daily logging and reflection
-def save_daily_log(selected_dates, activities_done, activity_hours, reflections):
-    sheet_obj = open_my_spreadsheet()
-    if sheet_obj is None:
-        return
-
-    try:
-        # Check if the "Daily_Logs" sheet exists, create if not
-        try:
-            worksheet = sheet_obj.worksheet("Daily_Logs")
-        except gspread.exceptions.WorksheetNotFound:
-            worksheet = sheet_obj.add_worksheet(title="Daily_Logs", rows="1000", cols="9")
-            worksheet.append_row(["Timestamp", "Dates", "Activities Done", "Hours Spent","Total Hours", "What went well?", "Challenges faced", "Lessons learned", "Mood Rating"])
-
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        dates_str = ", ".join(selected_dates)  
-        activities_str = ", ".join(activities_done)
-        total_hours = sum(activity_hours.values())  
-        activity_hours_json = json.dumps(activity_hours)  
-        
-        # Use the passed parameters instead of undefined 'activities_done'
-        row = [timestamp, dates_str, activities_str, total_hours, reflections["what_went_well"], reflections["challenges"], reflections["lessons"], reflections["mood_rating"]]
-        
-        if append_row(worksheet, row):
-            st.success("Daily reflection saved successfully!")
-        else:
-            st.error("Failed to save reflection.")
-    except Exception as e:
-        st.error(f"An error occurred: {e}")
-
-# Function to save app usage log
+# Function to save Reflection module app usage log
 def save_app_usage_log(selected_dates, activities_done, activity_hours, reflections):
     sheet_obj = open_my_spreadsheet()
     if sheet_obj is None:
         return
-
     try:
-        # Check if "App_Usage" sheet exists, create if not
+        # Check if "Reflection_App_Usage" sheet exists, create if not
         try:
-            usage_worksheet = sheet_obj.worksheet("App_Usage")
+            usage_worksheet = sheet_obj.worksheet("Reflection_App_Usage")
         except gspread.exceptions.WorksheetNotFound:
-            usage_worksheet = sheet_obj.add_worksheet(title="App_Usage", rows="1000", cols="8")
+            usage_worksheet = sheet_obj.add_worksheet(title="Reflection_App_Usage", rows="1000", cols="10")
             usage_worksheet.append_row([
                 "Timestamp", "Dates", "Activities Done", "Total Hours",
                 "What went well?", "Challenges faced", "Lessons learned", 
                 "Mood Rating"
             ])
-
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         dates_str = ", ".join(selected_dates)  
         activities_str = ", ".join(activities_done)
         total_hours = sum(activity_hours.values())  
-
         row = [
             timestamp, dates_str, activities_str, total_hours,
             reflections["what_went_well"], reflections["challenges"], reflections["lessons"],
             reflections["mood_rating"]
         ]
-        
-        append_row(usage_worksheet, row)
-    except Exception as e:
-        st.error(f"An error occurred in saving app usage: {e}")
-
-
-# Function to save app usage log
-def save_app_usage_log(selected_dates, activities_done, activity_hours, reflections):
-    sheet_obj = open_my_spreadsheet()
-    if sheet_obj is None:
-        return
-
-    try:
-        # Check if "App_Usage" sheet exists, create if not
-        try:
-            usage_worksheet = sheet_obj.worksheet("App_Usage")
-        except gspread.exceptions.WorksheetNotFound:
-            usage_worksheet = sheet_obj.add_worksheet(title="App_Usage", rows="1000", cols="8")
-            usage_worksheet.append_row([
-                "Timestamp", "Dates", "Activities Done", "Total Hours",
-                "What went well?", "Challenges faced", "Lessons learned", 
-                "Mood Rating"
-            ])
-
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        dates_str = ", ".join(selected_dates)  
-        activities_str = ", ".join(activities_done)
-        total_hours = sum(activity_hours.values())  
-
-        row = [
-            timestamp, dates_str, activities_str, total_hours,
-            reflections["what_went_well"], reflections["challenges"], reflections["lessons"],
-            reflections["mood_rating"]
-        ]
-        
         append_row(usage_worksheet, row)
     except Exception as e:
         st.error(f"An error occurred in saving app usage: {e}")
@@ -164,7 +92,6 @@ def save_feedback(feedback_text):
     sheet_obj = open_my_spreadsheet()
     if sheet_obj is None:
         return
-
     try:
         # Check if "Feedback_Reflections" sheet exists, create if not
         try:
@@ -172,10 +99,8 @@ def save_feedback(feedback_text):
         except gspread.exceptions.WorksheetNotFound:
             feedback_worksheet = sheet_obj.add_worksheet(title="Feedback_Reflections", rows="1000", cols="2")
             feedback_worksheet.append_row(["Timestamp", "Feedback"])
-
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         row = [timestamp, feedback_text]
-
         if append_row(feedback_worksheet, row):
             st.success("Feedback saved successfully!")
         else:
@@ -183,13 +108,11 @@ def save_feedback(feedback_text):
     except Exception as e:
         st.error(f"An error occurred while saving feedback: {e}")
 
-
-
-# Function to save feedback to Google Sheets in Sheet1
+# Function to save Daily Planner feedback to Google Sheets in Sheet1
 def save_feedback_to_gsheet(feedback):
     sheet_obj = open_my_spreadsheet()
     if sheet_obj is None:
-        st.error("Unable to open spreadsheet.")
+        st.error("Unable to open spreadsheet Sheet1 - Daily Planner feedback.")
         return
     try:
         worksheet = sheet_obj.sheet1
@@ -201,18 +124,6 @@ def save_feedback_to_gsheet(feedback):
             st.error("Failed to append feedback after multiple attempts.")
     except Exception as e:
         st.error(f"An error occurred while saving feedback: {e}")
-
-# Function to log app usage to Sheet2 (only timestamp)
-def log_app_usage():
-    sheet_obj = open_my_spreadsheet()
-    if sheet_obj is None:
-        return
-    try:
-        worksheet = sheet_obj.worksheet("Sheet2")
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        append_row(worksheet, [timestamp])
-    except Exception as e:
-        st.error(f"Error logging app usage: {e}")
 
 # Function to log each use of the app to Sheet3 (with user inputs)
 def log_app_inputs(user_inputs):
@@ -291,10 +202,85 @@ def generate_daily_plan(user_inputs):
 def main():
     st.title("Personalized Daily Planner & Reflection")
 
-    # Selection Button for Daily Planning vs Daily Logging
-    mode = st.radio("Choose an option:", ["Daily Planning", "Daily Logging & Reflection"])
+    # Selection Button for Daily Planning vs Reflection Logging
+    mode = st.radio("Choose an option:", ["Planning", "Reflection"])
     
-    if mode == "Daily Planning":
+    if mode == "Reflection":
+        st.subheader("Reflection")
+        st.write("Reflect on the major activities done, your takeaways, and rate your happiness")
+
+        # **Feature 1: Select Date or Multiple Days for Reflection**
+        selected_dates = st.multiselect(
+            "Select the date(s) for which you want to log reflection. Default date mentioned is today. To change, delete and select the new date. For a duration, select a start date and an end date",
+            options=pd.date_range(start="2024-03-01", end=datetime.datetime.today()).strftime("%Y-%m-%d").tolist(),
+            default=[datetime.datetime.today().strftime("%Y-%m-%d")]
+        )
+
+        # Initialize session state for activities
+        if 'activities_done' not in st.session_state:
+            st.session_state.activities_done = []
+        
+        # Step 1: Select activities
+        activity_options = [
+            "Commute/Travel", "Work/Office Tasks", "Personal Development",
+            "Fitness/Exercise", "Personal Care", "Family Time",
+            "Relaxation/Leisure", "Social/Networking", "Passion Project", "Sleep"
+        ]
+
+        # Initialize an empty list to avoid 'not defined' errors
+        activities_done = st.multiselect("Select major activities you did ", activity_options, key="activities_done")
+
+        # Step 2: Enter hours spent for selected activities
+        activity_hours = {}
+        if activities_done:  # Ensure at least one activity is selected
+            for activity in activities_done:
+                activity_hours[activity] = st.number_input(f"Hours spent on {activity}", min_value=0.0, max_value=24.0, step=0.5, key=f"log_hours_{activity}")
+            total_hours = sum(activity_hours.values())  # Calculate total hours dynamically
+
+        # **Fix: Initialize total_hours before referencing it**
+        total_hours = sum(activity_hours.values()) if activity_hours else 0.0
+        
+        # **Feature 2: Display Total Hours**
+        st.write(f"**Total Hours Spent on Selected Activities:** {total_hours} hours")
+
+        # Reflection Input Fields
+        what_went_well = st.text_area("What was the best experience/event of the day?")
+        challenges = st.text_area("What was the worst experience/event of the day?")
+        lessons = st.text_area("What are your key takeaways (lessons learned)?")
+        mood_rating = st.slider("Rate your happiness level today (1-10, 10 being happiest and 1 unhappy)", 1, 10, 5)
+
+        # Save the reflections
+        if st.button("Save Reflection"):
+            # Convert activities and hours to a readable format
+            activities_str = ", ".join(activities_done)
+            hours_str = ", ".join([f"{activity}: {hours}h" for activity, hours in activity_hours.items()])
+            reflections = {
+                "Date": pd.Timestamp.today().strftime("%Y-%m-%d"),
+                "Activities Done": activities_str,
+                "Hours Spent": hours_str,
+                "what_went_well": what_went_well,
+                "challenges": challenges,
+                "lessons": lessons,
+                "mood_rating": mood_rating
+            }
+            save_app_usage_log(selected_dates, activities_done, activity_hours, reflections)
+
+            # **Feature 3: Pie Chart Visualization**
+            total_available_time = len(selected_dates) * 24  
+            remaining_time = total_available_time - total_hours  
+            activity_hours["No Input Time"] = remaining_time  
+        
+            fig, ax = plt.subplots()
+            ax.pie(activity_hours.values(), labels=activity_hours.keys(), autopct='%1.1f%%', startangle=90)
+            ax.axis('equal')  
+            st.pyplot(fig)
+
+            # Show Feedback Section After Saving**
+            feedback_text = st.text_area("Feedback Reflection (After using the app)")
+            if st.button("Submit Feedback"):
+                save_feedback(feedback_text)
+    
+    elif mode == "Daily Planning":
         st.subheader("Daily Planner")
         st.write("Plan your day efficiently with AI-driven assistance.")
     
@@ -307,7 +293,6 @@ def main():
     
         wake_up_time = st.time_input("What time do you wake up?", value=st.session_state.wake_up_time, key="wake_up_time")
         sleep_time = st.time_input("What time do you go to sleep?", value=st.session_state.sleep_time, key="sleep_time")
-        
      
         # Step X: Ask preferred times for Office
         st.subheader("Preferred Office Start and End Time")
@@ -394,9 +379,6 @@ def main():
             st.session_state.daily_plan = daily_plan
             st.session_state.user_inputs = user_inputs
     
-            # Log the usage in Sheet 2
-            log_app_usage()
-    
             # Log the usage in Sheet 3
             log_app_inputs(user_inputs)
         
@@ -418,86 +400,6 @@ def main():
             feedback = st.text_area("Provide feedback:", "")
             if st.button("Save Feedback"):
                 save_feedback_to_gsheet(feedback)
-
-
-    elif mode == "Daily Logging & Reflection":
-        st.subheader("Daily Logging & Reflection")
-        st.write("Log the major activities you actually did during the selected duration and reflect on the duration.")
-
-        # **Feature 1: Select Date or Multiple Days for Reflection**
-        selected_dates = st.multiselect(
-            "Select the date(s) for which you want to log reflection. End date is today, delete it for a particular date selection, or just select the start date for a duration",
-            options=pd.date_range(start="2024-03-01", end=datetime.datetime.today()).strftime("%Y-%m-%d").tolist(),
-            default=[datetime.datetime.today().strftime("%Y-%m-%d")]
-        )
-
-        # Initialize session state for activities
-        if 'activities_done' not in st.session_state:
-            st.session_state.activities_done = []
-        
-        # Step 1: Select activities
-        activity_options = [
-            "Commute/Travel", "Work/Office Tasks", "Personal Development",
-            "Fitness/Exercise", "Personal Care", "Family Time",
-            "Relaxation/Leisure", "Social/Networking", "Passion Project", "Sleep"
-        ]
-
-        
-        # Initialize an empty list to avoid 'not defined' errors
-        activities_done = st.multiselect("Select major activities you did ", activity_options, key="activities_done")
-
-        # Step 2: Enter hours spent for selected activities
-        activity_hours = {}
-        if activities_done:  # Ensure at least one activity is selected
-            for activity in activities_done:
-                activity_hours[activity] = st.number_input(f"Hours spent on {activity}", min_value=0.0, max_value=24.0, step=0.5, key=f"log_hours_{activity}")
-            total_hours = sum(activity_hours.values())  # Calculate total hours dynamically
-
-        # **Fix: Initialize total_hours before referencing it**
-        total_hours = sum(activity_hours.values()) if activity_hours else 0.0
-        
-        # **Feature 2: Display Total Hours**
-        st.write(f"**Total Hours Spent on Selected Activities:** {total_hours} hours")
-
-        # Reflection Input Fields
-        what_went_well = st.text_area("What went well today?")
-        challenges = st.text_area("What challenges did you face?")
-        lessons = st.text_area("What lessons did you learn?")
-        mood_rating = st.slider("Rate your mood today (1-10)", 1, 10, 5)
-
-        # Save the reflections
-        if st.button("Save Reflection"):
-            # Convert activities and hours to a readable format
-            activities_str = ", ".join(activities_done)
-            hours_str = ", ".join([f"{activity}: {hours}h" for activity, hours in activity_hours.items()])
-            reflections = {
-                "Date": pd.Timestamp.today().strftime("%Y-%m-%d"),
-                "Activities Done": activities_str,
-                "Hours Spent": hours_str,
-                "what_went_well": what_went_well,
-                "challenges": challenges,
-                "lessons": lessons,
-                "mood_rating": mood_rating
-            }
-            save_daily_log(selected_dates, activities_done, activity_hours, reflections)
-            save_app_usage_log(selected_dates, activities_done, activity_hours, reflections)
-
-
-            # **Feature 3: Pie Chart Visualization**
-            total_available_time = len(selected_dates) * 24  
-            remaining_time = total_available_time - total_hours  
-            activity_hours["No Input Time"] = remaining_time  
-        
-            fig, ax = plt.subplots()
-            ax.pie(activity_hours.values(), labels=activity_hours.keys(), autopct='%1.1f%%', startangle=90)
-            ax.axis('equal')  
-            st.pyplot(fig)
-
-            # **Feature 1: Show Feedback Section After Saving**
-            feedback_text = st.text_area("Feedback Reflection (After using the app)")
-            if st.button("Submit Feedback"):
-                save_feedback(feedback_text)
-
             
 if __name__ == "__main__":
     main()

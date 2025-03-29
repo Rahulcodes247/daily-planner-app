@@ -275,7 +275,7 @@ def main():
             ax.pie(activity_hours.values(), labels=activity_hours.keys(), autopct='%1.1f%%', startangle=90)
             ax.axis('equal')  
             st.pyplot(fig)
-
+        
             # Show Feedback Section After Saving**
             feedback_text = st.text_area("Feedback on the Reflection module (how to enhance useability and user experience of this module)")
             if st.button("Submit Feedback"):
@@ -398,7 +398,7 @@ def main():
                     with st.spinner("Regenerating your daily planner..."):
                         updated_plan = generate_daily_plan(st.session_state.user_inputs)
                     st.session_state.daily_plan = updated_plan
-    
+            
             feedback = st.text_area("Provide feedback:", "")
             if st.button("Save Feedback"):
                 save_feedback_to_gsheet(feedback)

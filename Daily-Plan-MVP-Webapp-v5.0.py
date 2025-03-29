@@ -210,6 +210,12 @@ def main():
         st.subheader("Reflection")
         st.write("Reflect on the major activities done, your takeaways, and rate your happiness")
 
+        # Show Feedback Section After Saving**
+        feedback_text = st.text_area("Feedback on the Reflection module (how to enhance useability and user experience of this module)")
+        if st.button("Submit Feedback"):
+            st.write("Saving feedback...")
+            save_feedback_to_gsheet(feedback_text)
+        
         # **Feature 1: Select Date or Multiple Days for Reflection**
         selected_dates = st.multiselect(
             "Select the date(s) for which you want to log reflection. Default date mentioned is today. To change, delete and select the new date. For a duration, select a start date and an end date",
@@ -275,14 +281,8 @@ def main():
             ax.pie(activity_hours.values(), labels=activity_hours.keys(), autopct='%1.1f%%', startangle=90)
             ax.axis('equal')  
             st.pyplot(fig)
-        
-            # Show Feedback Section After Saving**
-            feedback_text = st.text_area("Feedback on the Reflection module (how to enhance useability and user experience of this module)")
-            if st.button("Submit Feedback"):
-                st.write("Saving feedback...")
-                save_feedback_to_gsheet(feedback_text)
-    
-    elif mode == "Daily Planning":
+            
+    elif mode == "Planning":
         st.subheader("Daily Planner")
         st.write("Plan your day efficiently with AI-driven assistance.")
     

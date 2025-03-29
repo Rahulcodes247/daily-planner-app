@@ -2,6 +2,7 @@ import openai
 import streamlit as st
 import json
 import datetime
+from datetime import time
 import pandas as pd
 import gspread
 import matplotlib.pyplot as plt
@@ -91,7 +92,7 @@ def save_app_usage_log(selected_dates, activities_done, activity_hours, reflecti
 def save_feedback_to_gsheet(feedback_text):
     sheet_obj = open_my_spreadsheet()
     if sheet_obj is None:
-        st.error("Unable to open spreadsheet for feedback_reflection loop")
+        st.error("Unable to open spreadsheet Sheet1 for feedback_reflection loop")
         return
     try:
         # Check if "Feedback_Reflections" sheet exists, create if not

@@ -86,14 +86,18 @@ def save_app_usage_log(selected_dates, activities_done, activity_times, activity
         activities_str = ", ".join(activities_done)
         total_hours = sum(activity_hours.values())
 
-        activity_times = {}  # Initialize as empty if not captured elsewhere
-        activity_times = {activity: time for activity, time in zip(activities_done, activity_hours.values())}
+        if 'activity_times' not in locals():
+            activity_times = {}  # Ensure it's defined # Initialize as empty if not captured elsewhere
+        
+        # Create a dictionary mapping each selected activity to its corresponding input hours
+        activity_times = {activity: activity_hours[activity] for activity in activities_done if activity in activity_hours}
+
         
         # Convert activity times to a readable format
-        activity_times_str = ", ".join([f"{act}: {activity_times[act]}" for act in activities_done])
+        #activity_times_str = ", ".join([f"{act}: {activity_times[act]}" for act in activities_done])
 
         row = [
-            timestamp, dates_str, activities_str, activity_times_str, total_hours,
+            timestamp, dates_str, activities_str, str(activity_times), total_hours,
             reflections["what_went_well"], reflections["challenges"], reflections["lessons"],
             reflections["mood_rating"]
         ]

@@ -64,7 +64,7 @@ def append_row(worksheet, row, retries=3, delay=2):
         except Exception as e:
             t.sleep(delay)
     return False
-    
+
 # Function to save Reflection module app usage log
 def save_app_usage_log(selected_dates, activities_done, activity_times, activity_hours, reflections):
     sheet_obj = open_my_spreadsheet()
@@ -92,8 +92,14 @@ def save_app_usage_log(selected_dates, activities_done, activity_times, activity
         # Compute total hours safely
         total_hours = sum(activity_hours.values()) if activity_hours else 0
         
-        # Define activity_times safely
-        activity_times = {activity: activity_hours.get(activity, 0) for activity in activities_done}
+        # Always define activity_times before it is used
+        activity_times = {}
+
+        if activities_done:  # Ensure there are activities
+            activity_times = {activity: activity_hours.get(activity, 0) for activity in activities_done}
+
+        # Ensure activity_times exists even if activities_done is empty
+        print("Debug: activity_times ->", activity_times)
         
         # Convert activity times to a readable format
         #activity_times_str = ", ".join([f"{act}: {activity_times[act]}" for act in activities_done])
@@ -285,6 +291,10 @@ def main():
                 "mood_rating": mood_rating
             }
             save_app_usage_log(selected_dates, activities_done, activity_times, activity_hours, reflections)
+            
+            print("Debug: total_hours ->", total_hours)
+            print("Debug: activity_hours ->", activity_hours)
+            print("Debug: activity_times ->", activity_times)  # This should exist!
 
             # **Feature 3: Pie Chart Visualization**
             total_available_time = len(selected_dates) * 24  

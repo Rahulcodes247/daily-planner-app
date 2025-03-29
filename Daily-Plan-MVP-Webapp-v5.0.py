@@ -89,7 +89,7 @@ def save_app_usage_log(selected_dates, activities_done, activity_hours, reflecti
         st.error(f"An error occurred in saving app usage: {e}")
 
 # Function to save feedback
-def save_feedback_to_gsheet(feedback_text):
+def save_feedback_to_gsheet(feedback_text, module_name):
     sheet_obj = open_my_spreadsheet()
     if sheet_obj is None:
         st.error("Unable to open spreadsheet Sheet1 for feedback_reflection loop")
@@ -98,7 +98,7 @@ def save_feedback_to_gsheet(feedback_text):
         # Check if "Feedback_Reflections" sheet exists, create if not
         worksheet = sheet_obj.sheet1
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        row = [timestamp, feedback_text]
+        row = [timestamp, module_name, feedback_text]
         st.write("Appending row:", row)
         if append_row(worksheet, row):
             st.success("Feedback saved successfully!")
@@ -109,7 +109,7 @@ def save_feedback_to_gsheet(feedback_text):
         st.write(e)
 
 # Function to save Daily Planner feedback to Google Sheets in Sheet1
-def save_feedback_to_gsheet(feedback):
+def save_feedback_to_gsheet(feedback, module_name):
     sheet_obj = open_my_spreadsheet()
     if sheet_obj is None:
         st.error("Unable to open spreadsheet Sheet1 - Daily Planner feedback.")
@@ -117,7 +117,7 @@ def save_feedback_to_gsheet(feedback):
     try:
         worksheet = sheet_obj.sheet1
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        row = [timestamp, feedback]
+        row = [timestamp, module_name, feedback]
         st.write("Appending row:", row)
         if append_row(worksheet, row):
             st.success("Feedback saved to Google Sheets!")
@@ -215,7 +215,7 @@ def main():
         feedback_text = st.text_area("Feedback on the Reflection module (how to enhance useability and user experience of this module)")
         if st.button("Submit Feedback"):
             st.write("Saving feedback...")
-            save_feedback_to_gsheet(feedback_text)
+            save_feedback_to_gsheet(feedback_text, "Reflection")
         
         # **Feature 1: Select Date or Multiple Days for Reflection**
         selected_dates = st.multiselect(
@@ -289,7 +289,7 @@ def main():
 
         feedback = st.text_area("Provide feedback:", "")
         if st.button("Save Feedback"):
-            save_feedback_to_gsheet(feedback)
+            save_feedback_to_gsheet(feedback, "Planning")
 
          # Step 1: Ask wake-up and sleep time
         st.subheader("Daily Routine Setup")

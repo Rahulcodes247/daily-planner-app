@@ -91,22 +91,20 @@ def save_app_usage_log(selected_dates, activities_done, activity_hours, reflecti
 def save_feedback(feedback_text):
     sheet_obj = open_my_spreadsheet()
     if sheet_obj is None:
+        st.error("Unable to open spreadsheet for feedback_reflection loop")
         return
     try:
         # Check if "Feedback_Reflections" sheet exists, create if not
         try:
             feedback_worksheet = sheet_obj.worksheet("Feedback_Reflections")
-        except gspread.exceptions.WorksheetNotFound:
-            feedback_worksheet = sheet_obj.add_worksheet(title="Feedback_Reflections", rows="1000", cols="2")
-            feedback_worksheet.append_row(["Timestamp", "Feedback"])
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        row = [timestamp, feedback_text]
-        if append_row(feedback_worksheet, row):
-            st.success("Feedback saved successfully!")
-        else:
-            st.error("Failed to save feedback.")
-    except Exception as e:
-        st.error(f"An error occurred while saving feedback: {e}")
+            timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            row = [timestamp, feedback_text]
+            if append_row(feedback_worksheet, row):
+                st.success("Feedback saved successfully!")
+            else:
+                st.error("Failed to save feedback.")
+        except Exception as e:
+            st.error(f"An error occurred while saving feedback: {e}")
 
 # Function to save Daily Planner feedback to Google Sheets in Sheet1
 def save_feedback_to_gsheet(feedback):
@@ -278,6 +276,7 @@ def main():
             # Show Feedback Section After Saving**
             feedback_text = st.text_area("Feedback on the Reflection module (how to enhance useability and user experience of this module)")
             if st.button("Submit Feedback"):
+                st.write("Saving feedback...")
                 save_feedback(feedback_text)
                 save_feedback_to_gsheet(feedback_text)
     

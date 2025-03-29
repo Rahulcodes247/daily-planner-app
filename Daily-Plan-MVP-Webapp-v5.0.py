@@ -286,7 +286,11 @@ def main():
     elif mode == "Planning":
         st.subheader("Daily Planner")
         st.write("Plan your day efficiently with AI-driven assistance.")
-    
+
+        feedback = st.text_area("Provide feedback:", "")
+        if st.button("Save Feedback"):
+            save_feedback_to_gsheet(feedback)
+
          # Step 1: Ask wake-up and sleep time
         st.subheader("Daily Routine Setup")
         if 'wake_up_time' not in st.session_state:
@@ -399,10 +403,6 @@ def main():
                     with st.spinner("Regenerating your daily planner..."):
                         updated_plan = generate_daily_plan(st.session_state.user_inputs)
                     st.session_state.daily_plan = updated_plan
-            
-            feedback = st.text_area("Provide feedback:", "")
-            if st.button("Save Feedback"):
-                save_feedback_to_gsheet(feedback)
-            
+                        
 if __name__ == "__main__":
     main()

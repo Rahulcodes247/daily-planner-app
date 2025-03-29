@@ -84,14 +84,16 @@ def save_app_usage_log(selected_dates, activities_done, activity_times, activity
         timestamp = get_ist_timestamp()  # Use IST timestamp
         dates_str = ", ".join(selected_dates)  
         activities_str = ", ".join(activities_done)
-        total_hours = sum(activity_hours.values())
 
-        if 'activity_times' not in locals():
-            activity_times = {}  # Ensure it's defined # Initialize as empty if not captured elsewhere
+        # Ensure activity_hours is always a dictionary
+        if not isinstance(activity_hours, dict):
+            activity_hours = {}
         
-        # Create a dictionary mapping each selected activity to its corresponding input hours
-        activity_times = {activity: activity_hours[activity] for activity in activities_done if activity in activity_hours}
-
+        # Compute total hours safely
+        total_hours = sum(activity_hours.values()) if activity_hours else 0
+        
+        # Define activity_times safely
+        activity_times = {activity: activity_hours.get(activity, 0) for activity in activities_done}
         
         # Convert activity times to a readable format
         #activity_times_str = ", ".join([f"{act}: {activity_times[act]}" for act in activities_done])

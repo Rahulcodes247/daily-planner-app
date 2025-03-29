@@ -275,7 +275,7 @@ def main():
                 "lessons": lessons,
                 "mood_rating": mood_rating
             }
-            save_app_usage_log(selected_dates, activities_done, activity_hours, reflections)
+            save_app_usage_log(selected_dates, activities_done, activity_times, activity_hours, reflections)
 
             # **Feature 3: Pie Chart Visualization**
             total_available_time = len(selected_dates) * 24  

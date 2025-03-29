@@ -66,7 +66,7 @@ def append_row(worksheet, row, retries=3, delay=2):
     return False
     
 # Function to save Reflection module app usage log
-def save_app_usage_log(selected_dates, activities_done, activity_hours, reflections):
+def save_app_usage_log(selected_dates, activities_done, activity_times, activity_hours, reflections):
     sheet_obj = open_my_spreadsheet()
     if sheet_obj is None:
         return
@@ -75,18 +75,22 @@ def save_app_usage_log(selected_dates, activities_done, activity_hours, reflecti
         try:
             usage_worksheet = sheet_obj.worksheet("Reflection_App_Usage")
         except gspread.exceptions.WorksheetNotFound:
-            usage_worksheet = sheet_obj.add_worksheet(title="Reflection_App_Usage", rows="1000", cols="10")
+            usage_worksheet = sheet_obj.add_worksheet(title="Reflection_App_Usage", rows="1000", cols="12")
             usage_worksheet.append_row([
-                "Timestamp", "Dates", "Activities Done", "Total Hours",
+                "Timestamp", "Dates", "Activities Done", "Activity Times", "Total Hours",
                 "What went well?", "Challenges faced", "Lessons learned", 
                 "Mood Rating"
             ])
         timestamp = get_ist_timestamp()  # Use IST timestamp
         dates_str = ", ".join(selected_dates)  
         activities_str = ", ".join(activities_done)
-        total_hours = sum(activity_hours.values())  
+        total_hours = sum(activity_hours.values())
+        
+        # Convert activity times to a readable format
+        activity_times_str = ", ".join([f"{act}: {activity_times[act]}" for act in activities_done])
+
         row = [
-            timestamp, dates_str, activities_str, total_hours,
+            timestamp, dates_str, activities_str, activity_times_str, total_hours,
             reflections["what_went_well"], reflections["challenges"], reflections["lessons"],
             reflections["mood_rating"]
         ]
@@ -211,17 +215,11 @@ def main():
     st.title("Personalized Daily Planner & Reflection")
 
     # Selection Button for Daily Planning vs Reflection Logging
-    mode = st.radio("Choose an option:", ["Planning", "Reflection"])
+    mode = st.radio("Choose an option:", ["Reflection", "Planning"])
     
     if mode == "Reflection":
         st.subheader("Reflection")
         st.write("Reflect on the major activities done, your takeaways, and rate your happiness")
-
-        # Show Feedback Section After Saving**
-        feedback_text = st.text_area("Feedback on the Reflection module (how to enhance useability and user experience of this module)")
-        if st.button("Submit Feedback"):
-            st.write("Saving feedback...")
-            save_feedback_to_gsheet(feedback_text, "Reflection")
         
         # **Feature 1: Select Date or Multiple Days for Reflection**
         selected_dates = st.multiselect(
@@ -288,14 +286,16 @@ def main():
             ax.pie(activity_hours.values(), labels=activity_hours.keys(), autopct='%1.1f%%', startangle=90)
             ax.axis('equal')  
             st.pyplot(fig)
+        
+        # Show Feedback Section
+        feedback_text = st.text_area("Feedback on the Reflection module (how to enhance useability and user experience of this module)")
+        if st.button("Submit Feedback"):
+            st.write("Saving feedback...")
+            save_feedback_to_gsheet(feedback_text, "Reflection")
             
     elif mode == "Planning":
         st.subheader("Daily Planner")
         st.write("Plan your day efficiently with AI-driven assistance.")
-
-        feedback = st.text_area("Provide feedback:", "")
-        if st.button("Save Feedback"):
-            save_feedback_to_gsheet(feedback, "Planning")
 
          # Step 1: Ask wake-up and sleep time
         st.subheader("Daily Routine Setup")
@@ -369,7 +369,12 @@ def main():
         preferences = st.text_area("Any constraints or preferences? (e.g., passion project in the morning, family time before dinner, etc.)", 
                                   value=st.session_state.preferences, key="preferences")
         
-       
+        
+        feedback = st.text_area("Provide feedback:", "")
+        if st.button("Save Feedback"):
+            save_feedback_to_gsheet(feedback, "Planning")
+
+        
         # Step 6: Compile all inputs and generate the daily plan
         if st.button("Generate Daily Plan", key="generate_button"):
             user_inputs = {

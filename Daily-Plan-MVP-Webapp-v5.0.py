@@ -10,6 +10,7 @@ from google.oauth2.service_account import Credentials
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 import time as t # for sleep delays in retry loops
+import pytz
 
 # Define the required scopes
 SCOPES = [
@@ -35,6 +36,11 @@ openai.api_key = OPENAI_API_KEY # Assign directly as a string
 
 # Use the spreadsheet ID for more reliable access
 SPREADSHEET_ID = "1ZF6EPGNl6aqh3-pH9cvJkR9nn42h0q9OgJJDkVIGbLc"  # Replace with your actual spreadsheet ID
+
+def get_ist_timestamp():
+    ist = pytz.timezone("Asia/Kolkata")  # Set timezone to IST
+    timestamp = datetime.datetime.now(ist).strftime("%Y-%m-%d %H:%M:%S")
+    return timestamp
 
 # Retry function for opening the spreadsheet by key
 def open_spreadsheet(sheet_id, retries=3, delay=2):
@@ -75,7 +81,7 @@ def save_app_usage_log(selected_dates, activities_done, activity_hours, reflecti
                 "What went well?", "Challenges faced", "Lessons learned", 
                 "Mood Rating"
             ])
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        timestamp = get_ist_timestamp()  # Use IST timestamp
         dates_str = ", ".join(selected_dates)  
         activities_str = ", ".join(activities_done)
         total_hours = sum(activity_hours.values())  
@@ -97,7 +103,7 @@ def save_feedback_to_gsheet(feedback_text, module_name):
     try:
         # Check if "Feedback_Reflections" sheet exists, create if not
         worksheet = sheet_obj.sheet1
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        timestamp = get_ist_timestamp()  # Use IST timestamp
         row = [timestamp, module_name, feedback_text]
         st.write("Appending row:", row)
         if append_row(worksheet, row):
@@ -116,7 +122,7 @@ def save_feedback_to_gsheet(feedback, module_name):
         return
     try:
         worksheet = sheet_obj.sheet1
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        timestamp = get_ist_timestamp()  # Use IST timestamp
         row = [timestamp, module_name, feedback]
         st.write("Appending row:", row)
         if append_row(worksheet, row):
@@ -134,7 +140,7 @@ def log_app_inputs(user_inputs):
         return
     try:
         worksheet = sheet_obj.worksheet("Sheet3")
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        timestamp = get_ist_timestamp()  # Use IST timestamp
         log_data = [
             timestamp,
             user_inputs["wake_up_time"],

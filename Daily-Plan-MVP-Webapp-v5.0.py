@@ -276,9 +276,10 @@ def main():
             st.pyplot(fig)
 
             # Show Feedback Section After Saving**
-            feedback_text = st.text_area("Feedback Reflection (After using the app)")
+            feedback_text = st.text_area("Feedback on the Reflection module (how to enhance useability and user experience of this module)")
             if st.button("Submit Feedback"):
                 save_feedback(feedback_text)
+                save_feedback_to_gsheet(feedback_text)
     
     elif mode == "Daily Planning":
         st.subheader("Daily Planner")

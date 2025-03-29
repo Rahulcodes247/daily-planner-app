@@ -66,7 +66,7 @@ def append_row(worksheet, row, retries=3, delay=2):
     return False
 
 # Function to save Reflection module app usage log
-def save_app_usage_log(selected_dates, activities_done, activity_hours.values(), activity_hours, reflections):
+def save_app_usage_log(selected_dates, activities_done, activity_values, activity_hours, reflections):
     sheet_obj = open_my_spreadsheet()
     if sheet_obj is None:
         return
@@ -91,9 +91,10 @@ def save_app_usage_log(selected_dates, activities_done, activity_hours.values(),
         
         # Compute total hours safely
         total_hours = sum(activity_hours.values()) if activity_hours else 0
+        activity_values = activity_hours.values()
         
         row = [
-            timestamp, dates_str, activities_str, str(activity_hours.values()), total_hours,
+            timestamp, dates_str, activities_str, str(activity_values), total_hours,
             reflections["what_went_well"], reflections["challenges"], reflections["lessons"],
             reflections["mood_rating"]
         ]
@@ -278,7 +279,7 @@ def main():
                 "lessons": lessons,
                 "mood_rating": mood_rating
             }
-            save_app_usage_log(selected_dates, activities_done, activity_hours.values(), activity_hours, reflections)
+            save_app_usage_log(selected_dates, activities_done, activity_values, activity_hours, reflections)
             
             print("Debug: total_hours ->", total_hours)
             print("Debug: activity_hours ->", activity_hours)

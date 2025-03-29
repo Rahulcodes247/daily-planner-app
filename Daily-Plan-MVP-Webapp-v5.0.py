@@ -95,16 +95,15 @@ def save_feedback(feedback_text):
         return
     try:
         # Check if "Feedback_Reflections" sheet exists, create if not
-        try:
-            feedback_worksheet = sheet_obj.worksheet("Feedback_Reflections")
-            timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            row = [timestamp, feedback_text]
-            st.write("Appending row:", row)
-            if append_row(feedback_worksheet, row):
-                st.success("Feedback saved successfully!")
-            else:
-                st.error("Failed to save feedback.")
-        except Exception as e:
+        feedback_worksheet = sheet_obj.worksheet("Feedback_Reflections")
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        row = [timestamp, feedback_text]
+        st.write("Appending row:", row)
+        if append_row(feedback_worksheet, row):
+            st.success("Feedback saved successfully!")
+        else:
+            st.error("Failed to save feedback.")    
+    except Exception as e:
             st.error(f"An error occurred while saving feedback: {e}")
             st.write(e)
 

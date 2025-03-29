@@ -87,6 +87,7 @@ def save_app_usage_log(selected_dates, activities_done, activity_times, activity
         total_hours = sum(activity_hours.values())
 
         activity_times = {}  # Initialize as empty if not captured elsewhere
+        activity_times = {activity: time for activity, time in zip(activities_done, activity_hours.values())}
         
         # Convert activity times to a readable format
         activity_times_str = ", ".join([f"{act}: {activity_times[act]}" for act in activities_done])

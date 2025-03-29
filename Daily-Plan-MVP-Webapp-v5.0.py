@@ -99,12 +99,14 @@ def save_feedback(feedback_text):
             feedback_worksheet = sheet_obj.worksheet("Feedback_Reflections")
             timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             row = [timestamp, feedback_text]
+            st.write("Appending row:", row)
             if append_row(feedback_worksheet, row):
                 st.success("Feedback saved successfully!")
             else:
                 st.error("Failed to save feedback.")
         except Exception as e:
             st.error(f"An error occurred while saving feedback: {e}")
+            st.write(e)
 
 # Function to save Daily Planner feedback to Google Sheets in Sheet1
 def save_feedback_to_gsheet(feedback):
@@ -122,6 +124,7 @@ def save_feedback_to_gsheet(feedback):
             st.error("Failed to append feedback after multiple attempts.")
     except Exception as e:
         st.error(f"An error occurred while saving feedback: {e}")
+        st.write(e)
 
 # Function to log each use of the app to Sheet3 (with user inputs)
 def log_app_inputs(user_inputs):

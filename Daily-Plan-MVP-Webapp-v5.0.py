@@ -66,7 +66,7 @@ def append_row(worksheet, row, retries=3, delay=2):
     return False
 
 # Function to save Reflection module app usage log
-def save_app_usage_log(selected_dates, activities_done, activity_values, activity_hours, reflections):
+def save_app_usage_log(selected_dates, activities_done, activity_hours, reflections):
     sheet_obj = open_my_spreadsheet()
     if sheet_obj is None:
         return
@@ -77,28 +77,26 @@ def save_app_usage_log(selected_dates, activities_done, activity_values, activit
         except gspread.exceptions.WorksheetNotFound:
             usage_worksheet = sheet_obj.add_worksheet(title="Reflection_App_Usage", rows="1000", cols="12")
             usage_worksheet.append_row([
-                "Timestamp", "Dates", "Activities Done", "Activity Times", "Total Hours",
+                "Timestamp", "Dates", "Activities Done", "Activity Hours", "Total Hours",
                 "What went well?", "Challenges faced", "Lessons learned", 
                 "Mood Rating"
             ])
         timestamp = get_ist_timestamp()  # Use IST timestamp
         dates_str = ", ".join(selected_dates)  
-        activities_str = ", ".join(activities_done)
-
-        # Ensure activity_hours is always a dictionary
-        if not isinstance(activity_hours, dict):
-            activity_hours = {}
+        
+        # Convert activities & hours into a structured string
+        activity_log = ", ".join([f"{activity}: {hours}h" for activity, hours in activity_hours.items()])
         
         # Compute total hours safely
         total_hours = sum(activity_hours.values()) if activity_hours else 0
-        activity_values = activity_hours.values()
-        
+
         row = [
-            timestamp, dates_str, activities_str, str(activity_values), total_hours,
-            reflections["what_went_well"], reflections["challenges"], reflections["lessons"],
-            reflections["mood_rating"]
+            timestamp, dates_str, ", ".join(activities_done), activity_log, total_hours,
+            reflections.get("what_went_well", ""), reflections.get("challenges", ""),
+            reflections.get("lessons", ""), reflections.get("mood_rating", "")
         ]
         append_row(usage_worksheet, row)
+    
     except Exception as e:
         st.error(f"An error occurred in saving app usage: {e}")
 
@@ -279,7 +277,7 @@ def main():
                 "lessons": lessons,
                 "mood_rating": mood_rating
             }
-            save_app_usage_log(selected_dates, activities_done, activity_values, activity_hours, reflections)
+            save_app_usage_log(selected_dates, activities_done, activity_hours, reflections)
             
             print("Debug: total_hours ->", total_hours)
             print("Debug: activity_hours ->", activity_hours)

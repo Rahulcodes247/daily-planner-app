@@ -1,0 +1,5 @@
+.streamlit
+.idea
+*__pycache__*
+.vscode
+google_credentials.json

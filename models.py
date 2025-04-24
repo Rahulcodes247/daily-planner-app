@@ -26,6 +26,12 @@ class StatusEnum(enum.Enum):
     completed = "completed"
 
 
+class PlanStatusEnum(enum.Enum):
+    start = "start"
+    inprogress = "inprogress"
+    completed = "completed"
+
+
 class Reflection(Base):
     __tablename__ = 'reflection'
 
@@ -61,5 +67,5 @@ class Plan(Base):
 
     constraints_or_preference = Column(Text, nullable=True)
 
-    status = Column(Enum(StatusEnum), default=StatusEnum.start)
+    status = Column(Enum(PlanStatusEnum), default=PlanStatusEnum.start)
     created_at = Column(DateTime, server_default=func.now())

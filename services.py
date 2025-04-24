@@ -1,5 +1,6 @@
 from db_service import SessionLocal
-from models import User
+from models import User, Reflection
+from model_schema import ReflectionCreate
 
 
 def add_user():
@@ -11,3 +12,11 @@ def add_user():
 
         print(f"Inserted user with ID: {new_user.id}")
 
+
+def create_reflection(reflection: ReflectionCreate):
+    db_reflection = Reflection(**reflection.dict())
+    with SessionLocal() as db:
+        db.add(db_reflection)
+        db.commit()
+        db.refresh(db_reflection)
+        return db_reflection

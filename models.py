@@ -6,11 +6,24 @@ import enum
 Base = declarative_base()
 
 
+class AuthProvider(enum.Enum):
+    GOOGLE = "google"
+    MICROSOFT = "microsoft"
+
+
 class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True)
     name = Column(String(50))
     email = Column(String(100), unique=True)
+
+    picture = Column(String, nullable=True)
+    locale = Column(String, nullable=True)
+
+    provider = Column(Enum(AuthProvider), default=AuthProvider.GOOGLE, nullable=True)
+    provider_user_id = Column(String, nullable=True)
+
+    created_at = Column(DateTime, server_default=func.now())
 
 
 class Activity(Base):
@@ -45,7 +58,9 @@ class Reflection(Base):
     lesson_learned = Column(Text, nullable=True)
     happy_level = Column(Integer)  # 1 to 10
     status = Column(Enum(StatusEnum), default=StatusEnum.start)
+    output = Column(JSON, nullable=True)  # List of dicts: [{'activity': ..., 'percentage': ...}]
     created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now())
 
 
 class Plan(Base):
@@ -53,7 +68,6 @@ class Plan(Base):
 
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=True)
-    activities = Column(ARRAY(String))
 
     wakeup_time = Column(Time)
     sleep_time = Column(Time)
@@ -66,6 +80,9 @@ class Plan(Base):
     preferred_dinner_time = Column(Time)
 
     constraints_or_preference = Column(Text, nullable=True)
+    optional_activities = Column(JSON, nullable=True)  # List of dicts: [{'activity': ..., 'hours': ...}]
 
     status = Column(Enum(PlanStatusEnum), default=PlanStatusEnum.start)
+    output = Column(JSON, nullable=True)  # List of dicts: [{'activity': ..., 'start_time': ..., 'end_time': ...}]
     created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now())

@@ -11,8 +11,10 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 import time as t # for sleep delays in retry loops
 import pytz
+
+import services
 from services import create_reflection
-from model_schema import ReflectionCreate
+from model_schema import PlanUpdate, ReflectionCreate, PlanCreate
 
 # Define the required scopes
 # SCOPES = [
@@ -29,13 +31,13 @@ from model_schema import ReflectionCreate
 # # Authenticate with Google Cloud
 # credentials = service_account.Credentials.from_service_account_info(GCP_CREDENTIALS_dict, scopes=SCOPES)
 # client = gspread.authorize(credentials)
-#
-# # Load OpenAI API Key from Streamlit secrets
-# OPENAI_API_KEY = st.secrets["openai"]["OPENAI_API_KEY"]
-#
-# # Set the OpenAI API key for use in your application
-# openai.api_key = OPENAI_API_KEY # Assign directly as a string
-#
+
+# Load OpenAI API Key from Streamlit secrets
+OPENAI_API_KEY = st.secrets["openai"]["OPENAI_API_KEY"]
+
+# Set the OpenAI API key for use in your application
+openai.api_key = OPENAI_API_KEY # Assign directly as a string
+
 # # Use the spreadsheet ID for more reliable access
 # SPREADSHEET_ID = "1ZF6EPGNl6aqh3-pH9cvJkR9nn42h0q9OgJJDkVIGbLc"  # Replace with your actual spreadsheet ID
 
@@ -103,7 +105,7 @@ def save_app_usage_log(selected_dates, activities_done, activity_hours, reflecti
     #         reflections.get("lessons", ""), reflections.get("mood_rating", "")
     #     ]
     #     append_row(usage_worksheet, row)
-    
+
     # except Exception as e:
     #     st.error(f"An error occurred in saving app usage: {e}")
 
@@ -173,7 +175,7 @@ def log_app_inputs(user_inputs):
     #     append_row(worksheet, log_data)
     # except Exception as e:
     #     st.error(f"Error logging app inputs: {e}")
-        
+
 # Function to generate daily plan
 def generate_daily_plan(user_inputs):
     prompt = f"""
@@ -195,7 +197,7 @@ def generate_daily_plan(user_inputs):
     - Adjust activities to avoid scheduling conflicts and ensure a smooth daily routine.
 
     **Output Format:**
-    - Use a **Markdown Table** format with the following columns:  
+    - Use a **Markdown Table** format with the following columns:
       | Time Slot  | Activity |
       |-----------|----------|
       | 6:00 AM - 7:00 AM | Wake-up & Morning Routine |
@@ -228,11 +230,11 @@ def main():
 
     # Selection Button for Daily Planning vs Reflection Logging
     mode = st.radio("Choose an option:", ["Reflection", "Planning"])
-    
+
     if mode == "Reflection":
         st.subheader("Reflection")
         st.write("Reflect on the major activities done, your takeaways, and rate your happiness")
-        
+
         # **Feature 1: Select Date or Multiple Days for Reflection**
         selected_dates = st.multiselect(
             "Select the date(s) for which you want to log reflection. Default date mentioned is today. To change, delete and select the new date. For a duration, select a start date and an end date",
@@ -243,7 +245,7 @@ def main():
         # Initialize session state for activities
         if 'activities_done' not in st.session_state:
             st.session_state.activities_done = []
-        
+
         # Step 1: Select activities
         activity_options = [
             "Commute/Travel", "Work/Office Tasks", "Personal Development",
@@ -261,9 +263,11 @@ def main():
                 activity_hours[activity] = st.number_input(f"Hours spent on {activity}", min_value=0.0, max_value=24.0, step=0.5, key=f"log_hours_{activity}")
             total_hours = sum(activity_hours.values())  # Calculate total hours dynamically
 
+        print(f"DEBUG: {activities_done = }")
+        print(f"DEBUG: {activity_hours = }")
         # **Fix: Initialize total_hours before referencing it**
         total_hours = sum(activity_hours.values()) if activity_hours else 0.0
-        
+
         # **Feature 2: Display Total Hours**
         st.write(f"**Total Hours Spent on Selected Activities:** {total_hours} hours")
 
@@ -293,7 +297,7 @@ def main():
                 start_date = min(selected_dates)
                 end_date = max(selected_dates)
             reflection_dict = {
-                "activities": [{"name": "activity1", "hours": 1.5}],
+                "activities": [{"name": key, "hours": value} for key, value in activity_hours.items()],
                 "start_date": start_date,
                 "end_date": end_date,
                 "best_experience": what_went_well,
@@ -302,31 +306,40 @@ def main():
                 "happy_level": mood_rating
             }
             print(f"{reflection_dict = }")
-            data = ReflectionCreate(**reflection_dict)
+            # save data in database
+            try:
+                data = ReflectionCreate(**reflection_dict)
+                reflection = create_reflection(reflection=data)
+            except Exception as e:
+                print(f"ERROR: {e}")
 
-            create_reflection(reflection=data)
             save_app_usage_log(selected_dates, activities_done, activity_hours, reflections)
-            
+
             print("Debug: total_hours ->", total_hours)
             print("Debug: activity_hours ->", activity_hours)
-            
+
             # **Feature 3: Pie Chart Visualization**
-            total_available_time = len(selected_dates) * 24  
-            remaining_time = total_available_time - total_hours  
-            activity_hours["No Input Time"] = remaining_time  
-        
+            total_available_time = len(selected_dates) * 24
+            remaining_time = total_available_time - total_hours
+            activity_hours["No Input Time"] = remaining_time
+            print(f"DEBUG: {total_available_time = }")
+            print(f"DEBUG: {remaining_time = }")
+            print(f"DEBUG: {activity_hours = }")
+
             fig, ax = plt.subplots()
             ax.pie(activity_hours.values(), labels=activity_hours.keys(), autopct='%1.1f%%', startangle=90)
-            ax.axis('equal')  
+            ax.axis('equal')
             st.pyplot(fig)
-        
+
         # Show Feedback Section
         feedback_text = st.text_area("Feedback on the Reflection module (how to enhance useability and user experience of this module)")
+        print(f"DEBUG: {feedback_text}")
         if st.button("Submit Feedback"):
             st.write("Saving feedback...")
             save_feedback_to_gsheet(feedback_text, "Reflection")
-            
+
     elif mode == "Planning":
+        plan_obj = None
         st.subheader("Daily Planner")
         st.write("Plan your day efficiently with AI-driven assistance.")
 
@@ -336,20 +349,20 @@ def main():
             st.session_state.wake_up_time = time(6, 0)  # Default to 6:00 AM
         if 'sleep_time' not in st.session_state:
             st.session_state.sleep_time = time(22, 0)  # Default to 10:00 PM
-    
+
         wake_up_time = st.time_input("What time do you wake up?", value=st.session_state.wake_up_time, key="wake_up_time")
         sleep_time = st.time_input("What time do you go to sleep?", value=st.session_state.sleep_time, key="sleep_time")
-     
+
         # Step X: Ask preferred times for Office
         st.subheader("Preferred Office Start and End Time")
         if 'office_start_time' not in st.session_state:
             st.session_state.office_start_time = datetime.time(10, 0)
         if 'office_end_time' not in st.session_state:
             st.session_state.office_end_time = datetime.time(18, 0)
-        
+
         office_start_time = st.time_input("Preferred time to start Office work?", value=st.session_state.office_start_time, key="office_start_time")
         office_end_time = st.time_input("Preferred time to end Office work?", value=st.session_state.office_end_time, key="office_end_time")
-    
+
         # Step 4: Ask preferred times for meals
         st.subheader("Preferred Meal Times")
         if 'breakfast_time' not in st.session_state:
@@ -358,56 +371,56 @@ def main():
             st.session_state.lunch_time = datetime.time(13, 0)
         if 'dinner_time' not in st.session_state:
             st.session_state.dinner_time = datetime.time(20, 0)
-        
+
         breakfast_time = st.time_input("Preferred time for breakfast?", value=st.session_state.breakfast_time, key="breakfast_time")
         lunch_time = st.time_input("Preferred time for lunch?", value=st.session_state.lunch_time, key="lunch_time")
         dinner_time = st.time_input("Preferred time for dinner?", value=st.session_state.dinner_time, key="dinner_time")
-        
+
         # Step 2: Ask for key activities selection
         st.subheader("Select the key activities you want to include in your daily plan:")
         activities = [
-        "Commute/Travel", 
+        "Commute/Travel",
         "Work/Office Tasks",
-        "Personal Development", 
-        "Fitness/Exercise", 
-        "Personal Care", 
-        "Family Time",  
-        "Relaxation/Leisure", 
+        "Personal Development",
+        "Fitness/Exercise",
+        "Personal Care",
+        "Family Time",
+        "Relaxation/Leisure",
         "Social/Networking",
         "Passion Project",
         "Cooking"
         ]
-        
+
         if 'selected_activities' not in st.session_state:
             st.session_state.selected_activities = []
-    
+
         selected_activities = st.multiselect("Select activities", activities, default=st.session_state.selected_activities, key="selected_activities")
-    
+
         # Step 3: Ask for hours for each selected activity
         activity_hours = {}
         for activity in selected_activities:
             if f"hours_{activity}" not in st.session_state:
                 st.session_state[f"hours_{activity}"] = 1.0  # Default hour as float
-            
-            activity_hours[activity] = st.number_input(f"How many hours for {activity}?", 
-                                                      min_value=0.0, max_value=24.0, 
-                                                      value=float(st.session_state[f"hours_{activity}"]), 
+
+            activity_hours[activity] = st.number_input(f"How many hours for {activity}?",
+                                                      min_value=0.0, max_value=24.0,
+                                                      value=float(st.session_state[f"hours_{activity}"]),
                                                       step=0.1, key=f"hours_{activity}")
-    
-        
+
+
        # Step 5: Ask for any constraints or preferences
         if 'preferences' not in st.session_state:
             st.session_state.preferences = ""
-            
-        preferences = st.text_area("Any constraints or preferences? (e.g., passion project in the morning, family time before dinner, etc.)", 
+
+        preferences = st.text_area("Any constraints or preferences? (e.g., passion project in the morning, family time before dinner, etc.)",
                                   value=st.session_state.preferences, key="preferences")
-        
-        
+
+
         feedback = st.text_area("Provide feedback:", "")
         if st.button("Save Feedback"):
             save_feedback_to_gsheet(feedback, "Planning")
 
-        
+
         # Step 6: Compile all inputs and generate the daily plan
         if st.button("Generate Daily Plan", key="generate_button"):
             user_inputs = {
@@ -422,22 +435,38 @@ def main():
                 "office_end_time": str(office_end_time),
                 "preferences": preferences
             }
-            
+            try:
+                plan: PlanCreate = services.prepare_plan_insert_data(user_inputs)
+                plan_obj = services.create_plan(plan)
+            except Exception as e:
+                st.error(f"Error creating plan: {e}")
+
             with st.spinner("Generating your daily plan..."):
                 daily_plan = generate_daily_plan(user_inputs)
-    
+                print(f"DEBUG: {daily_plan = }")
+                print(f"DEBUG: {user_inputs = }")
+
+                try:
+                    if plan_obj:
+                        parsed_chat_output: list[dict] = services.parse_chat_output_to_dict(chat_output=daily_plan)
+                        plan_update = PlanUpdate(parsed_chat_output)
+                        services.update_plan(plan_id=plan_obj.id, plan_output=plan_update)
+
+                except Exception as e:
+                    st.error(f"Error parsing chat output: {e}")
+
             # Store the plan in session state
             st.session_state.daily_plan = daily_plan
             st.session_state.user_inputs = user_inputs
-    
+
             # Log the usage in Sheet 3
             log_app_inputs(user_inputs)
-        
+
         # Display the daily plan if it exists
         if "daily_plan" in st.session_state and st.session_state.daily_plan:
             st.subheader("Your Daily Planner:")
             st.text(st.session_state.daily_plan)
-            
+
             # Feedback loop for revisions
             feedback = st.radio("Is this plan okay?", ("Yes", "No"), key="feedback_radio")
             if feedback == "No":
@@ -447,6 +476,6 @@ def main():
                     with st.spinner("Regenerating your daily planner..."):
                         updated_plan = generate_daily_plan(st.session_state.user_inputs)
                     st.session_state.daily_plan = updated_plan
-                        
+
 if __name__ == "__main__":
     main()

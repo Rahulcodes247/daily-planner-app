@@ -17,20 +17,20 @@ from services import create_reflection
 from model_schema import PlanUpdate, ReflectionCreate, PlanCreate
 
 # Define the required scopes
-# SCOPES = [
-#     "https://www.googleapis.com/auth/spreadsheets",
-#     "https://www.googleapis.com/auth/drive"
-# ]
-#
-# # Load GCP credentials from Streamlit secrets
-# GCP_CREDENTIALS = st.secrets["gcp"]["GCP_CREDENTIALS"]
-#
-# # Convert string to dictionary for Google Cloud credentials
-# GCP_CREDENTIALS_dict = json.loads(GCP_CREDENTIALS)
-#
-# # Authenticate with Google Cloud
-# credentials = service_account.Credentials.from_service_account_info(GCP_CREDENTIALS_dict, scopes=SCOPES)
-# client = gspread.authorize(credentials)
+SCOPES = [
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/drive"
+]
+
+# Load GCP credentials from Streamlit secrets
+GCP_CREDENTIALS = st.secrets["gcp"]["GCP_CREDENTIALS"]
+
+# Convert string to dictionary for Google Cloud credentials
+GCP_CREDENTIALS_dict = json.loads(GCP_CREDENTIALS)
+
+# Authenticate with Google Cloud
+credentials = service_account.Credentials.from_service_account_info(GCP_CREDENTIALS_dict, scopes=SCOPES)
+client = gspread.authorize(credentials)
 
 # Load OpenAI API Key from Streamlit secrets
 OPENAI_API_KEY = st.secrets["openai"]["OPENAI_API_KEY"]
@@ -38,8 +38,8 @@ OPENAI_API_KEY = st.secrets["openai"]["OPENAI_API_KEY"]
 # Set the OpenAI API key for use in your application
 openai.api_key = OPENAI_API_KEY # Assign directly as a string
 
-# # Use the spreadsheet ID for more reliable access
-# SPREADSHEET_ID = "1ZF6EPGNl6aqh3-pH9cvJkR9nn42h0q9OgJJDkVIGbLc"  # Replace with your actual spreadsheet ID
+# Use the spreadsheet ID for more reliable access
+SPREADSHEET_ID = "1ZF6EPGNl6aqh3-pH9cvJkR9nn42h0q9OgJJDkVIGbLc"  # Replace with your actual spreadsheet ID
 
 def get_ist_timestamp():
     ist = pytz.timezone("Asia/Kolkata")  # Set timezone to IST
@@ -47,17 +47,17 @@ def get_ist_timestamp():
     return timestamp
 
 # Retry function for opening the spreadsheet by key
-# def open_spreadsheet(sheet_id, retries=3, delay=2):
-#     for i in range(retries):
-#         try:
-#             return client.open_by_key(sheet_id)
-#         except Exception as e:
-#             t.sleep(delay)
-#     return None
+def open_spreadsheet(sheet_id, retries=3, delay=2):
+    for i in range(retries):
+        try:
+            return client.open_by_key(sheet_id)
+        except Exception as e:
+            t.sleep(delay)
+    return None
 
 # Instead of opening the spreadsheet globally, define a function to open it when needed.
-# def open_my_spreadsheet():
-#     return open_spreadsheet(SPREADSHEET_ID)
+def open_my_spreadsheet():
+    return open_spreadsheet(SPREADSHEET_ID)
 
 # Retry function for appending a row to a worksheet
 def append_row(worksheet, row, retries=3, delay=2):
@@ -76,105 +76,102 @@ def save_app_usage_log(selected_dates, activities_done, activity_hours, reflecti
     print(f"Debug: {activity_hours = }")
     print(f"Debug: {reflections = }")
     ...
-    # sheet_obj = open_my_spreadsheet()
-    # if sheet_obj is None:
-    #     return
-    # try:
-    #     # Check if "Reflection_App_Usage" sheet exists, create if not
-    #     try:
-    #         usage_worksheet = sheet_obj.worksheet("Reflection_App_Usage")
-    #     except gspread.exceptions.WorksheetNotFound:
-    #         usage_worksheet = sheet_obj.add_worksheet(title="Reflection_App_Usage", rows="1000", cols="12")
-    #         usage_worksheet.append_row([
-    #             "Timestamp", "Dates", "Activities Done", "Activity Hours", "Total Hours",
-    #             "What went well?", "Challenges faced", "Lessons learned",
-    #             "Mood Rating"
-    #         ])
-    #     timestamp = get_ist_timestamp()  # Use IST timestamp
-    #     dates_str = ", ".join(selected_dates)
-    #
-    #     # Convert activities & hours into a structured string
-    #     activity_log = ", ".join([f"{activity}: {hours}h" for activity, hours in activity_hours.items()])
-    #
-    #     # Compute total hours safely
-    #     total_hours = sum(activity_hours.values()) if activity_hours else 0
-    #
-    #     row = [
-    #         timestamp, dates_str, ", ".join(activities_done), activity_log, total_hours,
-    #         reflections.get("what_went_well", ""), reflections.get("challenges", ""),
-    #         reflections.get("lessons", ""), reflections.get("mood_rating", "")
-    #     ]
-    #     append_row(usage_worksheet, row)
+    sheet_obj = open_my_spreadsheet()
+    if sheet_obj is None:
+        return
+    try:
+        # Check if "Reflection_App_Usage" sheet exists, create if not
+        try:
+            usage_worksheet = sheet_obj.worksheet("Reflection_App_Usage")
+        except gspread.exceptions.WorksheetNotFound:
+            usage_worksheet = sheet_obj.add_worksheet(title="Reflection_App_Usage", rows="1000", cols="12")
+            usage_worksheet.append_row([
+                "Timestamp", "Dates", "Activities Done", "Activity Hours", "Total Hours",
+                "What went well?", "Challenges faced", "Lessons learned",
+                "Mood Rating"
+            ])
+        timestamp = get_ist_timestamp()  # Use IST timestamp
+        dates_str = ", ".join(selected_dates)
 
-    # except Exception as e:
-    #     st.error(f"An error occurred in saving app usage: {e}")
+        # Convert activities & hours into a structured string
+        activity_log = ", ".join([f"{activity}: {hours}h" for activity, hours in activity_hours.items()])
+
+        # Compute total hours safely
+        total_hours = sum(activity_hours.values()) if activity_hours else 0
+
+        row = [
+            timestamp, dates_str, ", ".join(activities_done), activity_log, total_hours,
+            reflections.get("what_went_well", ""), reflections.get("challenges", ""),
+            reflections.get("lessons", ""), reflections.get("mood_rating", "")
+        ]
+        append_row(usage_worksheet, row)
+
+    except Exception as e:
+        st.error(f"An error occurred in saving app usage: {e}")
 
 # Function to save feedback
 def save_feedback_to_gsheet(feedback_text, module_name):
-    ...
-    # sheet_obj = open_my_spreadsheet()
-    # if sheet_obj is None:
-    #     st.error("Unable to open spreadsheet Sheet1 for feedback_reflection loop")
-    #     return
-    # try:
-    #     # Check if "Feedback_Reflections" sheet exists, create if not
-    #     worksheet = sheet_obj.sheet1
-    #     timestamp = get_ist_timestamp()  # Use IST timestamp
-    #     row = [timestamp, module_name, feedback_text]
-    #     st.write("Appending row:", row)
-    #     if append_row(worksheet, row):
-    #         st.success("Feedback saved successfully!")
-    #     else:
-    #         st.error("Failed to save feedback.")
-    # except Exception as e:
-    #     st.error(f"An error occurred while saving feedback: {e}")
-    #     st.write(e)
+    sheet_obj = open_my_spreadsheet()
+    if sheet_obj is None:
+        st.error("Unable to open spreadsheet Sheet1 for feedback_reflection loop")
+        return
+    try:
+        # Check if "Feedback_Reflections" sheet exists, create if not
+        worksheet = sheet_obj.sheet1
+        timestamp = get_ist_timestamp()  # Use IST timestamp
+        row = [timestamp, module_name, feedback_text]
+        st.write("Appending row:", row)
+        if append_row(worksheet, row):
+            st.success("Feedback saved successfully!")
+        else:
+            st.error("Failed to save feedback.")
+    except Exception as e:
+        st.error(f"An error occurred while saving feedback: {e}")
+        st.write(e)
 
 # Function to save Daily Planner feedback to Google Sheets in Sheet1
 def save_feedback_to_gsheet(feedback, module_name):
-    ...
-    # sheet_obj = open_my_spreadsheet()
-    # if sheet_obj is None:
-    #     st.error("Unable to open spreadsheet Sheet1 - Daily Planner feedback.")
-    #     return
-    # try:
-    #     worksheet = sheet_obj.sheet1
-    #     timestamp = get_ist_timestamp()  # Use IST timestamp
-    #     row = [timestamp, module_name, feedback]
-    #     st.write("Appending row:", row)
-    #     if append_row(worksheet, row):
-    #         st.success("Feedback saved to Google Sheets!")
-    #     else:
-    #         st.error("Failed to append feedback after multiple attempts.")
-    # except Exception as e:
-    #     st.error(f"An error occurred while saving feedback: {e}")
-    #     st.write(e)
+    sheet_obj = open_my_spreadsheet()
+    if sheet_obj is None:
+        st.error("Unable to open spreadsheet Sheet1 - Daily Planner feedback.")
+        return
+    try:
+        worksheet = sheet_obj.sheet1
+        timestamp = get_ist_timestamp()  # Use IST timestamp
+        row = [timestamp, module_name, feedback]
+        st.write("Appending row:", row)
+        if append_row(worksheet, row):
+            st.success("Feedback saved to Google Sheets!")
+        else:
+            st.error("Failed to append feedback after multiple attempts.")
+    except Exception as e:
+        st.error(f"An error occurred while saving feedback: {e}")
+        st.write(e)
 
 # Function to log each use of the app to Sheet3 (with user inputs)
 def log_app_inputs(user_inputs):
-    ...
-    # sheet_obj = open_my_spreadsheet()
-    # if sheet_obj is None:
-    #     return
-    # try:
-    #     worksheet = sheet_obj.worksheet("Sheet3")
-    #     timestamp = get_ist_timestamp()  # Use IST timestamp
-    #     log_data = [
-    #         timestamp,
-    #         user_inputs["wake_up_time"],
-    #         user_inputs["sleep_time"],
-    #         ", ".join(user_inputs["activities"]),
-    #         json.dumps(user_inputs["activity_hours"]),
-    #         user_inputs["breakfast_time"],
-    #         user_inputs["office_start_time"],
-    #         user_inputs["lunch_time"],
-    #         user_inputs["office_end_time"],
-    #         user_inputs["dinner_time"],
-    #         user_inputs["preferences"]
-    #     ]
-    #     append_row(worksheet, log_data)
-    # except Exception as e:
-    #     st.error(f"Error logging app inputs: {e}")
+    sheet_obj = open_my_spreadsheet()
+    if sheet_obj is None:
+        return
+    try:
+        worksheet = sheet_obj.worksheet("Sheet3")
+        timestamp = get_ist_timestamp()  # Use IST timestamp
+        log_data = [
+            timestamp,
+            user_inputs["wake_up_time"],
+            user_inputs["sleep_time"],
+            ", ".join(user_inputs["activities"]),
+            json.dumps(user_inputs["activity_hours"]),
+            user_inputs["breakfast_time"],
+            user_inputs["office_start_time"],
+            user_inputs["lunch_time"],
+            user_inputs["office_end_time"],
+            user_inputs["dinner_time"],
+            user_inputs["preferences"]
+        ]
+        append_row(worksheet, log_data)
+    except Exception as e:
+        st.error(f"Error logging app inputs: {e}")
 
 # Function to generate daily plan
 def generate_daily_plan(user_inputs):

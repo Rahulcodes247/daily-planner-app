@@ -8,3 +8,7 @@ google-api-python-client
 google-auth-oauthlib
 google-auth-httplib2
 matplotlib
+streamlit-oauth
+SQLAlchemy==2.0.40
+psycopg2-binary==2.9.10
+pydantic
